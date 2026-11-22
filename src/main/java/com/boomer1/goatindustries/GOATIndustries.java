@@ -1,5 +1,6 @@
 package com.boomer1.goatindustries;
 
+import java.io.IOException;
 import java.util.logging.Level;
 
 import org.bukkit.plugin.Plugin;
@@ -37,7 +38,7 @@ public final class GOATIndustries extends JavaPlugin {
 
                 SlimefunContentRegistrar.register(this, slimefun, emcTech);
                 getLogger().info("[G.O.A.T. Industries] Content and EMC Diamond reward monitoring loaded successfully.");
-            } catch (ReflectiveOperationException | RuntimeException exception) {
+            } catch (ReflectiveOperationException | IOException | RuntimeException exception) {
                 getLogger().log(Level.SEVERE,
                     "[G.O.A.T. Industries] Could not register G.O.A.T. Industries content or EMC rewards. "
                         + "Disabling G.O.A.T. Industries.", exception);
