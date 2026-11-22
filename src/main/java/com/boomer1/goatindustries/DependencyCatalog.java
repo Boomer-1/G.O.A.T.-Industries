@@ -7,15 +7,39 @@ import java.util.Set;
 
 public final class DependencyCatalog {
 
-    public static final String REQUIRED_PLUGIN = "EMCTech";
+    private static final List<AddonRequirement> ADDONS = List.of(
+        new AddonRequirement("InfinityExpansion2", "InfinityExpansion2"),
+        new AddonRequirement("TranscEndence", "TranscEndence"),
+        new AddonRequirement("Supreme", "Supreme"),
+        new AddonRequirement("MomoTech", "MomoTech"),
+        new AddonRequirement("LiteXpansion", "LiteXpansion"),
+        new AddonRequirement("Galactifun", "Galactifun"),
+        new AddonRequirement("Tsingshan Technology", "TsingshanTechnology-Fixed"),
+        new AddonRequirement("Ultimate Generators 2", "UltimateGenerators2"),
+        new AddonRequirement("FNAmplifications", "FNAmplifications"),
+        new AddonRequirement("DankTech2", "DankTech2"),
+        new AddonRequirement("Networks", "Networks"),
+        new AddonRequirement("Crystamae Historia", "CrystamaeHistoria"),
+        new AddonRequirement("EMCTech", "EMCTech")
+    );
 
     private static final List<ItemRequirement> ITEMS = buildItems();
 
     private DependencyCatalog() {
     }
 
+    public static List<AddonRequirement> addons() {
+        return ADDONS;
+    }
+
     public static List<ItemRequirement> items() {
         return ITEMS;
+    }
+
+    public static List<ItemRequirement> itemsForAddon(String addon) {
+        return ITEMS.stream()
+            .filter(item -> item.addon().equals(addon))
+            .toList();
     }
 
     private static List<ItemRequirement> buildItems() {
@@ -62,6 +86,8 @@ public final class DependencyCatalog {
 
         add(items, "Tsingshan Technology", "PRO Generator", "QS_PRO_FADIANJI_FDL");
 
+        add(items, "Ultimate Generators 2", "LAMBDA-λ Electricity Storage", "LAMBDA_ELECTRICITY_STORAGE");
+
         add(items, "FNAmplifications", "FN Generator R12", "FN_POWER_XPANSION_POWER_R12");
 
         add(items, "DankTech2", "Dank Pack Tier 9", "DK2_PACK_9");
@@ -99,6 +125,9 @@ public final class DependencyCatalog {
     private static String titleCase(String value) {
         String lower = value.toLowerCase(java.util.Locale.ROOT);
         return Character.toUpperCase(lower.charAt(0)) + lower.substring(1);
+    }
+
+    public record AddonRequirement(String name, String pluginName) {
     }
 
     public record ItemRequirement(String addon, String displayName, String id) {
