@@ -19,6 +19,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class EmcDiamondRewardManager implements Listener {
 
     private static final double REWARD_THRESHOLD = 1_000_000_000D;
+    private static final long CHECK_INTERVAL_TICKS = 200L;
     private static final String EMC_STORAGE_CLASS = "io.github.sefiraat.emctech.emc.EmcStorage";
     private static final String REWARD_CONFIG_PATH = "rewards.emc-diamond.claimed.";
 
@@ -40,8 +41,9 @@ public final class EmcDiamondRewardManager implements Listener {
 
     public void start() {
         Bukkit.getPluginManager().registerEvents(this, plugin);
-        Bukkit.getScheduler().runTaskTimer(plugin, this::checkOnlinePlayers, 1L, 1L);
-        plugin.getLogger().info("[G.O.A.T. Industries] EMC Diamond reward monitoring started.");
+        Bukkit.getScheduler().runTaskTimer(plugin, this::checkOnlinePlayers, 1L, CHECK_INTERVAL_TICKS);
+        plugin.getLogger().info("[G.O.A.T. Industries] EMC Diamond reward monitoring started "
+            + "(checking every 10 seconds).");
     }
 
     @EventHandler
