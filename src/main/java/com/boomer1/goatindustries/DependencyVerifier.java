@@ -1,6 +1,5 @@
 package com.boomer1.goatindustries;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Set;
@@ -82,12 +81,18 @@ public final class DependencyVerifier {
         Method getRegistry = slimefunClass.getMethod("getRegistry");
         Object registry = getRegistry.invoke(null);
 
-        Method getEnabledItems = registry.getClass().getMethod("getEnabledSlimefunItems");
+        Class<?> registryClass = Class.forName(
+            "io.github.thebusybiscuit.slimefun4.core.SlimefunRegistry", true, slimefunClassLoader);
+        Method getEnabledItems = registryClass.getMethod("getEnabledSlimefunItems");
         Object enabledItems = getEnabledItems.invoke(registry);
 
         if (!(enabledItems instanceof Iterable<?> iterable)) {
             throw new IllegalStateException("Slimefun returned an unexpected enabled-item registry type.");
         }
+
+        Class<?> slimefunItemClass = Class.forName(
+            "io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem", true, slimefunClassLoader);
+        Method getId = slimefunItemClass.getMethod("getId");
 
         Set<String> ids = new HashSet<>();
         for (Object item : iterable) {
@@ -95,7 +100,6 @@ public final class DependencyVerifier {
                 continue;
             }
 
-            Method getId = item.getClass().getMethod("getId");
             Object id = getId.invoke(item);
             if (id instanceof String stringId && !stringId.isBlank()) {
                 ids.add(stringId);
