@@ -4,7 +4,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.List;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -27,7 +26,8 @@ public final class SlimefunContentRegistrar {
     private SlimefunContentRegistrar() {
     }
 
-    public static void register(JavaPlugin plugin, Plugin slimefun) throws ReflectiveOperationException {
+    public static void register(JavaPlugin plugin, Plugin slimefun, Plugin emcTech)
+        throws ReflectiveOperationException {
         ClassLoader loader = slimefun.getClass().getClassLoader();
 
         Class<?> addonClass = Class.forName(SLIMEFUN_ADDON, true, loader);
@@ -73,28 +73,37 @@ public final class SlimefunContentRegistrar {
                 ChatColor.DARK_RED + "Guide item only - not a crafting ingredient."
             });
 
+        ItemStack emcDiamondStack = createSlimefunStack(loader, "EMC_DIAMOND", Material.DIAMOND_BLOCK,
+            ChatColor.AQUA + "EMC Diamond",
+            new String[] {
+                ChatColor.GRAY + "A reward for reaching",
+                ChatColor.GOLD + "1,000,000,000 EMC.",
+                ChatColor.GRAY + "Awarded once per player."
+            });
+
         Class<?> slimefunItemStackClass = Class.forName(SLIMEFUN_ITEM_STACK, true, loader);
         Class<?> recipeTypeClass = Class.forName(RECIPE_TYPE, true, loader);
-        Object interactRecipe = recipeTypeClass.getField("INTERACT").get(null);
         Object nullRecipe = recipeTypeClass.getField("NULL").get(null);
 
         Class<?> slimefunItemClass = Class.forName(SLIMEFUN_ITEM, true, loader);
-        Constructor<?> guideItemConstructor = slimefunItemClass.getConstructor(itemGroupClass,
+        Constructor<?> itemConstructor = slimefunItemClass.getConstructor(itemGroupClass,
             slimefunItemStackClass, recipeTypeClass, ItemStack[].class);
-        Object guideItem = guideItemConstructor.newInstance(itemGroup, guideStack, nullRecipe, new ItemStack[0]);
+
+        Object guideItem = itemConstructor.newInstance(itemGroup, guideStack, nullRecipe, new ItemStack[0]);
         slimefunItemClass.getMethod("register", addonClass).invoke(guideItem, addon);
 
-        ItemStack[] trophyRecipe = new ItemStack[9];
-        trophyRecipe[4] = ((ItemStack) guideStack).clone();
+        Object emcDiamondItem = itemConstructor.newInstance(itemGroup, emcDiamondStack, nullRecipe,
+            new ItemStack[0]);
+        slimefunItemClass.getMethod("register", addonClass).invoke(emcDiamondItem, addon);
 
-        Constructor<?> recipeItemConstructor = slimefunItemClass.getConstructor(itemGroupClass,
-            slimefunItemStackClass, recipeTypeClass, ItemStack[].class);
-        Object trophyItem = recipeItemConstructor.newInstance(itemGroup, trophyStack,
-            interactRecipe == null ? nullRecipe : interactRecipe, trophyRecipe);
+        Object trophyItem = itemConstructor.newInstance(itemGroup, trophyStack, nullRecipe, new ItemStack[0]);
         slimefunItemClass.getMethod("register", addonClass).invoke(trophyItem, addon);
 
         plugin.getServer().getPluginManager().registerEvents(new GoatTrophyListener(plugin), plugin);
-        plugin.getLogger().info("[G.O.A.T. Industries] Registered G.O.A.T. Trophy and pyramid guide entries.");
+        new EmcDiamondRewardManager(plugin, emcTech, emcDiamondStack).start();
+
+        plugin.getLogger().info("[G.O.A.T. Industries] Registered EMC Diamond, G.O.A.T. Trophy, "
+            + "and pyramid guide entries.");
     }
 
     private static ItemStack createSlimefunStack(ClassLoader loader, String id, Material material,
