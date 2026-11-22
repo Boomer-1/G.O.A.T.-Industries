@@ -5,5 +5,17 @@ api-version: '1.21'
 depend:
   - Slimefun
 softdepend:
+  - InfinityExpansion2
+  - TranscEndence
+  - Supreme
+  - MomoTech
+  - LiteXpansion
+  - Galactifun
+  - TsingshanTechnology-Fixed
+  - UltimateGenerators2
+  - FNAmplifications
+  - DankTech2
+  - Networks
+  - CrystamaeHistoria
   - EMCTech
 description: The ultimate Slimefun addon
