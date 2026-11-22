@@ -78,6 +78,8 @@ public final class DependencyCatalog {
         }
 
         add(items, "LiteXpansion", "UU Matter", "UU_MATTER");
+        add(items, "LiteXpansion", "Recycler", "SCRAP_MACHINE");
+        add(items, "LiteXpansion", "Mass Fabricator", "MASS_FABRICATOR_MACHINE");
 
         add(items, "Galactifun", "Laserite Ore", "LASERITE_ORE");
         add(items, "Galactifun", "Moon Rock", "MOON_ROCK");
