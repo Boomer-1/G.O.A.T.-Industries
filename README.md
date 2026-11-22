@@ -6,24 +6,43 @@ The ultimate Slimefun addon.
 
 This first test build is a dependency preflight only. It does not add recipes, machines, or the G.O.A.T. trophy yet.
 
-At startup it checks:
+At startup it checks all 13 required addon plugins and the required Slimefun item IDs:
 
-1. Slimefun is available.
-2. The plugin named `EMCTech` is installed and enabled.
-3. Every Slimefun item ID currently recorded in `DependencyCatalog.java` is present in Slimefun's enabled-item registry.
+1. InfinityExpansion2
+2. TranscEndence
+3. Supreme
+4. MomoTech
+5. LiteXpansion
+6. Galactifun
+7. Tsingshan Technology
+8. Ultimate Generators 2
+9. FNAmplifications
+10. DankTech2
+11. Networks
+12. Crystamae Historia
+13. EMCTech
 
-If any requirement is missing, G.O.A.T. Industries logs the exact missing plugin or addon/item ID and disables itself.
+Each addon is checked completely before its success line is printed. An addon is confirmed only when its plugin is installed and enabled and every catalogued item for that addon is present in Slimefun's enabled-item registry. The checker continues through all 13 addons even after finding a missing plugin or item.
+
+After all addons have been checked, missing addons and missing items are listed in the console. G.O.A.T. Industries then disables itself if any requirement is missing or if Slimefun's item registry cannot be read.
 
 ## Current item checks
 
-The current catalog contains the item requirements collected so far for InfinityExpansion2, TranscEndence, Supreme, MomoTech, LiteXpansion, Galactifun, Tsingshan Technology, FNAmplifications, DankTech2, Networks, and Crystamae Historia.
-
-- Crystamae Historia: all 54 crystals (six rarities × nine crystal types), using IDs verified in the SlimefunGuguProject source.
+- InfinityExpansion2: 2 items.
+- TranscEndence: 5 Daxi items.
+- Supreme: 12 specified items, including Supreme Attribute Bomb.
 - MomoTech: all 50 compressed cobblestone levels.
-- EMCTech: plugin presence/enabled state only; no EMCTech item has been specified yet.
-- Ultimate Generators 2 Lambda Battery is not included yet because its exact registered Slimefun ID has not been verified.
+- LiteXpansion: UU Matter.
+- Galactifun: 9 specified items.
+- Tsingshan Technology: PRO Generator.
+- Ultimate Generators 2: LAMBDA-λ Electricity Storage, catalogued as `LAMBDA_ELECTRICITY_STORAGE`.
+- FNAmplifications: FN Generator R12.
+- DankTech2: Dank Pack Tier 9.
+- Networks: Quantum Storage 140.7T.
+- Crystamae Historia: all 54 crystals (six rarities × nine crystal types).
+- EMCTech: plugin presence/enabled state only; no EMCTech item has been specified.
 
-Some other collected addon IDs still need a version-by-version comparison against the SlimefunGuguProject builds. The live server registry check will expose mismatches; a missing ID is reported verbatim rather than silently guessed or substituted.
+Some collected addon IDs still need a version-by-version comparison against the SlimefunGuguProject builds. The live server registry check compares the catalogued IDs exactly and reports mismatches verbatim.
 
 ## Build
 
@@ -48,7 +67,7 @@ The GitHub Actions build compiles against Paper API 1.21.1 and uses reflection f
 
 ## Server test
 
-1. Download the test JAR from the GitHub Actions artifact.
+1. Download the latest test JAR from the GitHub Actions artifact.
 2. Place it in the server's `plugins` folder.
 3. Restart the server.
 4. Review the console lines beginning with `[G.O.A.T. Industries]`.
