@@ -47,6 +47,9 @@ public final class DependencyCatalog {
 
         add(items, "InfinityExpansion2", "Infinity Singularity Reactor", "IE_INFINITY_SINGULARITY_REACTOR");
         add(items, "InfinityExpansion2", "Infinity Capacitor", "IE_INFINITY_CAPACITOR");
+        add(items, "InfinityExpansion2", "Infinity Workbench", "IE_INFINITY_WORKBENCH");
+        add(items, "InfinityExpansion2", "Infinity Singularity Constructor", "IE_SINGULARITY_CONSTRUCTOR_2");
+        add(items, "InfinityExpansion2", "Singularity Constructor", "IE_SINGULARITY_CONSTRUCTOR");
 
         add(items, "TranscEndence", "Daxi (S) - Strength", "DAXI_STRENGTH");
         add(items, "TranscEndence", "Daxi (A) - Absorption", "DAXI_ABSORPTION");
@@ -66,6 +69,8 @@ public final class DependencyCatalog {
         add(items, "Supreme", "Supreme Attribute Bomb", "SUPREME_ATTRIBUTE_BOMB");
         add(items, "Supreme", "Supreme Capacitor", "SUPREME_SUPREME_CAPACITOR");
         add(items, "Supreme", "Supreme Generator", "SUPREME_SUPREME_GENERATOR");
+        add(items, "Supreme", "Thornium Quarry", "SUPREME_THORNIUM_QUARRY");
+        add(items, "Supreme", "Nuggets of Supreme Quarry", "SUPREME_SUPREME_NUGGETS_QUARRY");
 
         for (int level = 0; level < 50; level++) {
             add(items, "MomoTech", "Compressed Cobblestone Level " + (level + 1),
