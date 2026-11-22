@@ -79,9 +79,9 @@ public final class SlimefunContentRegistrar {
         Object nullRecipe = recipeTypeClass.getField("NULL").get(null);
 
         Class<?> slimefunItemClass = Class.forName(SLIMEFUN_ITEM, true, loader);
-        Constructor<?> simpleItemConstructor = slimefunItemClass.getConstructor(itemGroupClass,
-            slimefunItemStackClass);
-        Object guideItem = simpleItemConstructor.newInstance(itemGroup, guideStack);
+        Constructor<?> guideItemConstructor = slimefunItemClass.getConstructor(itemGroupClass,
+            slimefunItemStackClass, recipeTypeClass, ItemStack[].class);
+        Object guideItem = guideItemConstructor.newInstance(itemGroup, guideStack, nullRecipe, new ItemStack[0]);
         slimefunItemClass.getMethod("register", addonClass).invoke(guideItem, addon);
 
         ItemStack[] trophyRecipe = new ItemStack[9];
