@@ -40,7 +40,7 @@ public final class EmcDiamondRewardManager implements Listener {
 
     public void start() {
         Bukkit.getPluginManager().registerEvents(this, plugin);
-        Bukkit.getScheduler().runTaskTimer(plugin, this::checkOnlinePlayers, 1L, 20L);
+        Bukkit.getScheduler().runTaskTimer(plugin, this::checkOnlinePlayers, 1L, 1L);
         plugin.getLogger().info("[G.O.A.T. Industries] EMC Diamond reward monitoring started.");
     }
 
