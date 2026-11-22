@@ -1,0 +1,9 @@
+name: GOATIndustries
+version: ${project.version}
+main: com.boomer1.goatindustries.GOATIndustries
+api-version: '1.21'
+depend:
+  - Slimefun
+softdepend:
+  - EMCTech
+description: The ultimate Slimefun addon
