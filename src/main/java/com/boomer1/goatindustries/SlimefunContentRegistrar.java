@@ -1,5 +1,6 @@
 package com.boomer1.goatindustries;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -27,7 +28,7 @@ public final class SlimefunContentRegistrar {
     }
 
     public static void register(JavaPlugin plugin, Plugin slimefun, Plugin emcTech)
-        throws ReflectiveOperationException {
+        throws ReflectiveOperationException, IOException {
         ClassLoader loader = slimefun.getClass().getClassLoader();
 
         Class<?> addonClass = Class.forName(SLIMEFUN_ADDON, true, loader);
