@@ -21,7 +21,7 @@ class DependencyCatalogTest {
 
     @Test
     void catalogContainsAllCollectedRequirementsWithoutDuplicateIds() {
-        assertEquals(143, DependencyCatalog.items().size());
+        assertEquals(145, DependencyCatalog.items().size());
 
         Set<String> ids = new HashSet<>();
         DependencyCatalog.items().forEach(item -> assertTrue(ids.add(item.id()),
@@ -34,6 +34,13 @@ class DependencyCatalogTest {
             .anyMatch(item -> item.addon().equals("Ultimate Generators 2")
                 && item.displayName().equals("LAMBDA-λ Electricity Storage")
                 && item.id().equals("LAMBDA_ELECTRICITY_STORAGE")));
+    }
+
+
+    @Test
+    void catalogContainsLiteXpansionMachines() {
+        assertHasItem("LiteXpansion", "SCRAP_MACHINE");
+        assertHasItem("LiteXpansion", "MASS_FABRICATOR_MACHINE");
     }
 
     @Test
