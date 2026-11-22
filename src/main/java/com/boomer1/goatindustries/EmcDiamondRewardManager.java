@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -51,9 +52,36 @@ public final class EmcDiamondRewardManager implements Listener {
             throw new IOException("Could not create " + ACHIEVED_FILE_NAME + ".");
         }
         this.achievedData = YamlConfiguration.loadConfiguration(achievedFile);
+        migrateLegacyAchievements();
 
         Class<?> emcStorageClass = Class.forName(EMC_STORAGE_CLASS, true, emcTech.getClass().getClassLoader());
         this.getEmcMethod = emcStorageClass.getMethod("getEmc", UUID.class);
+    }
+
+    private void migrateLegacyAchievements() throws IOException {
+        String legacyPath = "rewards.emc-diamond.claimed";
+        ConfigurationSection legacyClaims = plugin.getConfig().getConfigurationSection(legacyPath);
+        if (legacyClaims == null) {
+            return;
+        }
+
+        boolean migrated = false;
+        for (String playerId : legacyClaims.getKeys(false)) {
+            if (legacyClaims.getBoolean(playerId, false)
+                && !achievedData.getBoolean(REWARD_DATA_PATH + playerId, false)) {
+                achievedData.set(REWARD_DATA_PATH + playerId, true);
+                migrated = true;
+            }
+        }
+
+        if (migrated) {
+            achievedData.save(achievedFile);
+        }
+
+        plugin.getConfig().set(legacyPath, null);
+        plugin.saveConfig();
+        plugin.getLogger().info("[G.O.A.T. Industries] Migrated previous EMC Diamond achievement records "
+            + "to " + ACHIEVED_FILE_NAME + ".");
     }
 
     public void start() {
