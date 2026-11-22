@@ -21,7 +21,7 @@ class DependencyCatalogTest {
 
     @Test
     void catalogContainsAllCollectedRequirementsWithoutDuplicateIds() {
-        assertEquals(138, DependencyCatalog.items().size());
+        assertEquals(143, DependencyCatalog.items().size());
 
         Set<String> ids = new HashSet<>();
         DependencyCatalog.items().forEach(item -> assertTrue(ids.add(item.id()),
@@ -34,6 +34,25 @@ class DependencyCatalogTest {
             .anyMatch(item -> item.addon().equals("Ultimate Generators 2")
                 && item.displayName().equals("LAMBDA-λ Electricity Storage")
                 && item.id().equals("LAMBDA_ELECTRICITY_STORAGE")));
+    }
+
+    @Test
+    void catalogContainsNewInfinityExpansionTwoMachines() {
+        assertHasItem("InfinityExpansion2", "IE_INFINITY_WORKBENCH");
+        assertHasItem("InfinityExpansion2", "IE_SINGULARITY_CONSTRUCTOR_2");
+        assertHasItem("InfinityExpansion2", "IE_SINGULARITY_CONSTRUCTOR");
+    }
+
+    @Test
+    void catalogContainsNewSupremeQuarries() {
+        assertHasItem("Supreme", "SUPREME_THORNIUM_QUARRY");
+        assertHasItem("Supreme", "SUPREME_SUPREME_NUGGETS_QUARRY");
+    }
+
+    private static void assertHasItem(String addon, String id) {
+        assertTrue(DependencyCatalog.items().stream()
+            .anyMatch(item -> item.addon().equals(addon) && item.id().equals(id)),
+            "Missing dependency " + id + " for " + addon);
     }
 
     @Test
