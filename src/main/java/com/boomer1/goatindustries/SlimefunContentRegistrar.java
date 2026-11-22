@@ -33,7 +33,7 @@ public final class SlimefunContentRegistrar {
         Class<?> addonClass = Class.forName(SLIMEFUN_ADDON, true, loader);
         Object addon = createAddonProxy(addonClass, plugin);
 
-        ItemStack groupIcon = new ItemStack(Material.NETHERITE_BLOCK);
+        ItemStack groupIcon = new ItemStack(Material.REINFORCED_DEEPSLATE);
         ItemMeta groupMeta = groupIcon.getItemMeta();
         groupMeta.setDisplayName(ChatColor.GOLD + "G.O.A.T. Industries");
         groupIcon.setItemMeta(groupMeta);
