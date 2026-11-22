@@ -1,11 +1,14 @@
 package com.boomer1.goatindustries;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class DependencyVerifier {
@@ -17,59 +20,88 @@ public final class DependencyVerifier {
     }
 
     public static boolean verify(JavaPlugin plugin) {
-        boolean passed = true;
-
-        Plugin emctech = plugin.getServer().getPluginManager().getPlugin(DependencyCatalog.REQUIRED_PLUGIN);
-        if (emctech == null) {
-            plugin.getLogger().severe("[G.O.A.T. Industries] Required plugin is not installed: "
-                + DependencyCatalog.REQUIRED_PLUGIN);
-            passed = false;
-        } else if (!emctech.isEnabled()) {
-            plugin.getLogger().severe("[G.O.A.T. Industries] Required plugin is installed but not enabled: "
-                + DependencyCatalog.REQUIRED_PLUGIN);
-            passed = false;
-        } else {
-            plugin.getLogger().info("[G.O.A.T. Industries] Required plugin is installed and enabled: EMCTech");
-        }
-
         Plugin slimefun = plugin.getServer().getPluginManager().getPlugin("Slimefun");
         if (slimefun == null || !slimefun.isEnabled()) {
             plugin.getLogger().severe("[G.O.A.T. Industries] Slimefun is missing or disabled; item checks cannot run.");
             return false;
         }
 
-        Set<String> enabledItemIds;
+        Set<String> enabledItemIds = null;
+        String registryFailure = null;
         try {
             enabledItemIds = readEnabledSlimefunItemIds(slimefun);
         } catch (ReflectiveOperationException | RuntimeException exception) {
+            registryFailure = exception.getClass().getSimpleName() + ": " + exception.getMessage();
             plugin.getLogger().log(Level.SEVERE,
                 "[G.O.A.T. Industries] Could not read Slimefun's enabled-item registry. "
-                    + "Failing closed rather than assuming dependencies are present.",
+                    + "All 13 addon plugin checks will still run, but item verification is unavailable.",
                 exception);
-            return false;
         }
 
-        int missingCount = 0;
-        for (DependencyCatalog.ItemRequirement requirement : DependencyCatalog.items()) {
-            if (!enabledItemIds.contains(requirement.id())) {
-                missingCount++;
-                plugin.getLogger().severe("[G.O.A.T. Industries] Missing Slimefun item"
-                    + " | addon=" + requirement.addon()
-                    + " | item=" + requirement.displayName()
-                    + " | id=" + requirement.id());
-                passed = false;
+        PluginManager pluginManager = plugin.getServer().getPluginManager();
+        List<String> missingAddons = new ArrayList<>();
+        List<DependencyCatalog.ItemRequirement> missingItems = new ArrayList<>();
+        int successfulAddons = 0;
+
+        for (DependencyCatalog.AddonRequirement addon : DependencyCatalog.addons()) {
+            Plugin dependency = pluginManager.getPlugin(addon.pluginName());
+            boolean addonPluginEnabled = dependency != null && dependency.isEnabled();
+
+            if (dependency == null) {
+                missingAddons.add(addon.name() + " (plugin '" + addon.pluginName() + "' is not installed)");
+            } else if (!dependency.isEnabled()) {
+                missingAddons.add(addon.name() + " (plugin '" + addon.pluginName() + "' is installed but disabled)");
+            }
+
+            List<DependencyCatalog.ItemRequirement> addonItems =
+                DependencyCatalog.itemsForAddon(addon.name());
+            boolean allAddonItemsPresent = registryFailure == null;
+
+            if (enabledItemIds != null) {
+                for (DependencyCatalog.ItemRequirement item : addonItems) {
+                    if (!enabledItemIds.contains(item.id())) {
+                        missingItems.add(item);
+                        allAddonItemsPresent = false;
+                    }
+                }
+            }
+
+            if (addonPluginEnabled && allAddonItemsPresent) {
+                successfulAddons++;
+                plugin.getLogger().info("[G.O.A.T. Industries] " + addon.name() + " successfully confirmed.");
             }
         }
 
-        if (missingCount == 0) {
-            plugin.getLogger().info("[G.O.A.T. Industries] All "
-                + DependencyCatalog.items().size() + " configured Slimefun item IDs are registered and enabled.");
-        } else {
-            plugin.getLogger().severe("[G.O.A.T. Industries] " + missingCount + " of "
-                + DependencyCatalog.items().size() + " configured Slimefun item IDs are missing or disabled.");
+        if (registryFailure != null) {
+            plugin.getLogger().severe("[G.O.A.T. Industries] Item verification could not be completed: "
+                + registryFailure);
         }
 
-        return passed;
+        if (!missingAddons.isEmpty() || !missingItems.isEmpty() || registryFailure != null) {
+            plugin.getLogger().severe("[G.O.A.T. Industries] Dependency verification failed after checking all "
+                + DependencyCatalog.addons().size() + " addons.");
+
+            for (String missingAddon : missingAddons) {
+                plugin.getLogger().severe("[G.O.A.T. Industries] Missing addon: " + missingAddon);
+            }
+
+            for (DependencyCatalog.ItemRequirement missingItem : missingItems) {
+                plugin.getLogger().severe("[G.O.A.T. Industries] Missing item"
+                    + " | addon=" + missingItem.addon()
+                    + " | item=" + missingItem.displayName()
+                    + " | id=" + missingItem.id());
+            }
+
+            plugin.getLogger().severe("[G.O.A.T. Industries] Successfully confirmed "
+                + successfulAddons + " of " + DependencyCatalog.addons().size() + " addons.");
+            plugin.getLogger().severe("[G.O.A.T. Industries] Disabling G.O.A.T. Industries.");
+            return false;
+        }
+
+        plugin.getLogger().info("[G.O.A.T. Industries] All " + DependencyCatalog.addons().size()
+            + " addons and all " + DependencyCatalog.items().size()
+            + " required item IDs were successfully confirmed.");
+        return true;
     }
 
     private static Set<String> readEnabledSlimefunItemIds(Plugin slimefun)
