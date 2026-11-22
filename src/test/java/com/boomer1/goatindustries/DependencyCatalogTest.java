@@ -11,12 +11,29 @@ import org.junit.jupiter.api.Test;
 class DependencyCatalogTest {
 
     @Test
+    void catalogContainsAllThirteenAddons() {
+        assertEquals(13, DependencyCatalog.addons().size());
+
+        Set<String> addonNames = new HashSet<>();
+        DependencyCatalog.addons().forEach(addon -> assertTrue(addonNames.add(addon.name()),
+            "Duplicate addon requirement: " + addon.name()));
+    }
+
+    @Test
     void catalogContainsAllCollectedRequirementsWithoutDuplicateIds() {
-        assertEquals(137, DependencyCatalog.items().size());
+        assertEquals(138, DependencyCatalog.items().size());
 
         Set<String> ids = new HashSet<>();
         DependencyCatalog.items().forEach(item -> assertTrue(ids.add(item.id()),
             "Duplicate dependency ID: " + item.id()));
+    }
+
+    @Test
+    void catalogContainsLambdaBatteryForUltimateGeneratorsTwo() {
+        assertTrue(DependencyCatalog.items().stream()
+            .anyMatch(item -> item.addon().equals("Ultimate Generators 2")
+                && item.displayName().equals("LAMBDA-λ Electricity Storage")
+                && item.id().equals("LAMBDA_ELECTRICITY_STORAGE")));
     }
 
     @Test
