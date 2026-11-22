@@ -25,12 +25,21 @@ public final class GOATIndustries extends JavaPlugin {
             }
 
             Plugin slimefun = getServer().getPluginManager().getPlugin("Slimefun");
+            Plugin emcTech = getServer().getPluginManager().getPlugin("EMCTech");
+
             try {
-                SlimefunContentRegistrar.register(this, slimefun);
-                getLogger().info("[G.O.A.T. Industries] G.O.A.T. Trophy content loaded successfully.");
+                if (slimefun == null || !slimefun.isEnabled()) {
+                    throw new IllegalStateException("Slimefun is not available.");
+                }
+                if (emcTech == null || !emcTech.isEnabled()) {
+                    throw new IllegalStateException("EMCTech is not available.");
+                }
+
+                SlimefunContentRegistrar.register(this, slimefun, emcTech);
+                getLogger().info("[G.O.A.T. Industries] Content and EMC Diamond reward monitoring loaded successfully.");
             } catch (ReflectiveOperationException | RuntimeException exception) {
                 getLogger().log(Level.SEVERE,
-                    "[G.O.A.T. Industries] Could not register the G.O.A.T. Trophy with Slimefun. "
+                    "[G.O.A.T. Industries] Could not register G.O.A.T. Industries content or EMC rewards. "
                         + "Disabling G.O.A.T. Industries.", exception);
                 getServer().getPluginManager().disablePlugin(this);
             }
