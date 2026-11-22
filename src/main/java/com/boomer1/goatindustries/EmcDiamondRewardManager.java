@@ -1,0 +1,115 @@
+package com.boomer1.goatindustries;
+
+import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+import java.util.logging.Level;
+
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public final class EmcDiamondRewardManager implements Listener {
+
+    private static final double REWARD_THRESHOLD = 1_000_000_000D;
+    private static final String EMC_STORAGE_CLASS = "io.github.sefiraat.emctech.emc.EmcStorage";
+    private static final String REWARD_CONFIG_PATH = "rewards.emc-diamond.claimed.";
+
+    private final JavaPlugin plugin;
+    private final ItemStack emcDiamond;
+    private final Method getEmcMethod;
+    private final Set<UUID> rewardedThisSession = new HashSet<>();
+
+    private boolean apiFailureLogged;
+
+    public EmcDiamondRewardManager(JavaPlugin plugin, Plugin emcTech, ItemStack emcDiamond)
+        throws ReflectiveOperationException {
+        this.plugin = plugin;
+        this.emcDiamond = emcDiamond.clone();
+
+        Class<?> emcStorageClass = Class.forName(EMC_STORAGE_CLASS, true, emcTech.getClass().getClassLoader());
+        this.getEmcMethod = emcStorageClass.getMethod("getEmc", UUID.class);
+    }
+
+    public void start() {
+        Bukkit.getPluginManager().registerEvents(this, plugin);
+        Bukkit.getScheduler().runTaskTimer(plugin, this::checkOnlinePlayers, 1L, 20L);
+        plugin.getLogger().info("[G.O.A.T. Industries] EMC Diamond reward monitoring started.");
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Bukkit.getScheduler().runTask(plugin, () -> checkPlayer(event.getPlayer()));
+    }
+
+    private void checkOnlinePlayers() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            checkPlayer(player);
+        }
+    }
+
+    private void checkPlayer(Player player) {
+        UUID playerId = player.getUniqueId();
+
+        if (hasReceivedReward(playerId)) {
+            return;
+        }
+
+        final double currentEmc;
+        try {
+            Object value = getEmcMethod.invoke(null, playerId);
+            if (!(value instanceof Number number)) {
+                throw new IllegalStateException("EMCTech returned a non-numeric EMC balance.");
+            }
+            currentEmc = number.doubleValue();
+        } catch (ReflectiveOperationException | RuntimeException exception) {
+            if (!apiFailureLogged) {
+                apiFailureLogged = true;
+                plugin.getLogger().log(Level.SEVERE,
+                    "[G.O.A.T. Industries] Could not read player EMC from EMCTech. "
+                        + "EMC Diamond rewards are paused.", exception);
+            }
+            return;
+        }
+
+        if (currentEmc < REWARD_THRESHOLD) {
+            return;
+        }
+
+        rewardPlayer(player);
+    }
+
+    private boolean hasReceivedReward(UUID playerId) {
+        return rewardedThisSession.contains(playerId)
+            || plugin.getConfig().getBoolean(REWARD_CONFIG_PATH + playerId, false);
+    }
+
+    private void rewardPlayer(Player player) {
+        UUID playerId = player.getUniqueId();
+        if (!rewardedThisSession.add(playerId)) {
+            return;
+        }
+
+        PlayerInventory inventory = player.getInventory();
+        int emptySlot = inventory.firstEmpty();
+
+        if (emptySlot >= 0) {
+            inventory.setItem(emptySlot, emcDiamond.clone());
+        } else {
+            player.getWorld().dropItemNaturally(player.getLocation(), emcDiamond.clone());
+        }
+
+        plugin.getConfig().set(REWARD_CONFIG_PATH + playerId, true);
+        plugin.saveConfig();
+
+        player.sendMessage("Congratulations on achieving 1 Billion EMC!");
+        plugin.getLogger().info("[G.O.A.T. Industries] Awarded an EMC Diamond to " + player.getName() + ".");
+    }
+}
