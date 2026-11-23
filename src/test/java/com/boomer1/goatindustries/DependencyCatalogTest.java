@@ -21,7 +21,7 @@ class DependencyCatalogTest {
 
     @Test
     void catalogContainsAllCollectedRequirementsWithoutDuplicateIds() {
-        assertEquals(152, DependencyCatalog.items().size());
+        assertEquals(153, DependencyCatalog.items().size());
 
         Set<String> ids = new HashSet<>();
         DependencyCatalog.items().forEach(item -> assertTrue(ids.add(item.id()),
@@ -59,6 +59,7 @@ class DependencyCatalogTest {
     void catalogContainsNewSupremeQuarries() {
         assertHasItem("Supreme", "SUPREME_THORNIUM_QUARRY");
         assertHasItem("Supreme", "SUPREME_SUPREME_NUGGETS_QUARRY");
+        assertHasItem("Supreme", "SUPREME_THORNIUM_ENERGIZED");
     }
 
     private static void assertHasItem(String addon, String id) {
