@@ -102,6 +102,7 @@ public final class SlimefunContentRegistrar {
 
         DynamicCrystalFormer.register(plugin, loader, itemGroup, addon);
 
+        plugin.getServer().getPluginManager().registerEvents(new DynamicCrystalPlacementListener(plugin), plugin);
         plugin.getServer().getPluginManager().registerEvents(new GoatTrophyListener(plugin), plugin);
         new EmcDiamondRewardManager(plugin, emcTech, emcDiamondStack).start();
 
