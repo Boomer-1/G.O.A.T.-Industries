@@ -79,7 +79,7 @@ public final class DynamicCrystalFormer {
         progressMeta.setDisplayName(ChatColor.YELLOW + "Processing");
         progressBar.setItemMeta(progressMeta);
 
-        Class<?> machineClass = createMachineClass(plugin.getClass().getClassLoader(), slimefunLoader, progressBar);
+        Class<?> machineClass = createMachineClass(plugin, plugin.getClass().getClassLoader(), slimefunLoader, progressBar);
         Constructor<?> machineConstructor = machineClass.getConstructor(
             itemGroupClass, itemStackClass, recipeTypeClass, ItemStack[].class
         );
@@ -142,8 +142,9 @@ public final class DynamicCrystalFormer {
         plugin.getLogger().info("[G.O.A.T. Industries] Dynamic Crystal Former registered with six exact 3x3 crystal recipes.");
     }
 
-    private static Class<?> createMachineClass(ClassLoader pluginLoader, ClassLoader slimefunLoader, ItemStack progressBar)
-        throws ReflectiveOperationException {
+    private static Class<?> createMachineClass(
+        JavaPlugin plugin, ClassLoader pluginLoader, ClassLoader slimefunLoader, ItemStack progressBar
+    ) throws ReflectiveOperationException {
 
         Class<?> aContainerClass = Class.forName(A_CONTAINER_CLASS, true, slimefunLoader);
         Class<?> itemGroupClass = Class.forName(ITEM_GROUP_CLASS, true, slimefunLoader);
@@ -170,7 +171,7 @@ public final class DynamicCrystalFormer {
             .method(ElementMatchers.named("findNextRecipe").and(ElementMatchers.takesArguments(1)))
             .intercept(MethodDelegation.to(new ExactRecipeMatcher()))
             .method(ElementMatchers.named("constructMenu").and(ElementMatchers.takesArguments(1)))
-            .intercept(MethodDelegation.to(new MachineMenuConfigurator()))
+            .intercept(MethodDelegation.to(new MachineMenuConfigurator(plugin)))
             .make()
             .load(pluginLoader, ClassLoadingStrategy.Default.WRAPPER)
             .getLoaded();
@@ -334,6 +335,13 @@ public final class DynamicCrystalFormer {
                     for (int i = 0; i < inputSlots.length; i++) {
                         consumeItem.invoke(menu, inputSlots[i], requiredInputs[i].getAmount());
                     }
+
+                    // The orange pane is only a visual placeholder. Clear it as soon as
+                    // processing begins so Slimefun can place the finished crystal here.
+                    Method replaceExistingItem = blockMenuClass.getMethod(
+                        "replaceExistingItem", int.class, ItemStack.class
+                    );
+                    replaceExistingItem.invoke(menu, DynamicCrystalCatalog.OUTPUT_SLOT, new Object[] {null});
                     return recipe;
                 }
                 return null;
@@ -355,6 +363,12 @@ public final class DynamicCrystalFormer {
     }
 
     public static final class MachineMenuConfigurator {
+
+        private final JavaPlugin plugin;
+
+        public MachineMenuConfigurator(JavaPlugin plugin) {
+            this.plugin = plugin;
+        }
 
         public void configure(@This Object machine, @Argument(0) Object preset) {
             try {
@@ -392,7 +406,17 @@ public final class DynamicCrystalFormer {
                             }
 
                             ItemStack cursor = (ItemStack) arguments[3];
-                            return cursor == null || cursor.getType() == null || cursor.getType() == Material.AIR;
+                            boolean canTake = cursor == null || cursor.getType() == null || cursor.getType() == Material.AIR;
+                            if (canTake && event.getRawSlot() == DynamicCrystalCatalog.OUTPUT_SLOT) {
+                                Bukkit.getScheduler().runTask(plugin, () -> {
+                                    org.bukkit.inventory.Inventory top = event.getView().getTopInventory();
+                                    ItemStack current = top.getItem(DynamicCrystalCatalog.OUTPUT_SLOT);
+                                    if (current == null || current.getType() == Material.AIR) {
+                                        top.setItem(DynamicCrystalCatalog.OUTPUT_SLOT, outputTexture.clone());
+                                    }
+                                });
+                            }
+                            return canTake;
                         }
                         return false;
                     }
