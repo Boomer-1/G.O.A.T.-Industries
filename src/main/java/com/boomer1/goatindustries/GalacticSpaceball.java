@@ -91,8 +91,6 @@ public final class GalacticSpaceball {
             .getMethod("register", addonClass);
         register.invoke(spaceball, addon);
 
-        plugin.getLogger().info("[G.O.A.T. Industries] Galactic Spaceball registered as an unplaceable item "
-            + "with its exact 3x3 Enhanced Crafting Table recipe.");
     }
 
     private static ItemStack[] resolveRecipe(ClassLoader slimefunLoader) throws ReflectiveOperationException {
