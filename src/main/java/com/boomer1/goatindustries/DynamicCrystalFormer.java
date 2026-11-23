@@ -12,6 +12,7 @@ import java.util.UUID;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.description.modifier.Visibility;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
+import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.implementation.FixedValue;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.MethodDelegation;
@@ -145,7 +146,7 @@ public final class DynamicCrystalFormer {
         );
 
         return new ByteBuddy()
-            .subclass(aContainerClass)
+            .subclass(aContainerClass, ConstructorStrategy.Default.NO_CONSTRUCTORS)
             .name("com.boomer1.goatindustries.generated.DynamicCrystalFormerMachine")
             .defineConstructor(Visibility.PUBLIC)
             .withParameters(itemGroupClass, itemStackClass, recipeTypeClass, ItemStack[].class)
@@ -180,7 +181,7 @@ public final class DynamicCrystalFormer {
         );
 
         return new ByteBuddy()
-            .subclass(slimefunItemClass)
+            .subclass(slimefunItemClass, ConstructorStrategy.Default.NO_CONSTRUCTORS)
             .implement(notPlaceableClass)
             .name("com.boomer1.goatindustries.generated.NotPlaceableDynamicCrystal")
             .defineConstructor(Visibility.PUBLIC)
