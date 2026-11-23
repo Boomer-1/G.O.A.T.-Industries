@@ -141,6 +141,8 @@ public final class SlimefunContentRegistrar {
 
         plugin.getServer().getPluginManager().registerEvents(new DynamicCrystalPlacementListener(plugin), plugin);
         plugin.getServer().getPluginManager().registerEvents(new GoatTrophyListener(plugin), plugin);
+        DiscordTrophyNotifier trophyNotifier = new DiscordTrophyNotifier(plugin);
+        new GoatTrophyCraftListener(plugin, loader, trophyNotifier).register();
         new EmcDiamondRewardManager(plugin, emcTech, emcDiamondStack).start();
 
     }
