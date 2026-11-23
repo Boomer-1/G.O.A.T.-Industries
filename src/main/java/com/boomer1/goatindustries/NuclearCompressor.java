@@ -145,9 +145,6 @@ public final class NuclearCompressor {
         machineClass.getMethod("setProcessingSpeed", int.class).invoke(machine, 1);
         registerItem.invoke(machine, addon);
 
-        plugin.getLogger().info(
-            "[G.O.A.T. Industries] Nuclear Compressor and VERY_DEADLY Nuclear UU Matter registered."
-        );
     }
 
     private static Class<?> createMachineClass(
