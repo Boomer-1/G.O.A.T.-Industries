@@ -79,7 +79,9 @@ public final class SuperSupremeCore {
             ITEM_ID,
             Material.PLAYER_HEAD,
             ChatColor.GOLD + ITEM_NAME,
-            new String[0]
+            new String[] {
+                "How is it possible to put so much in so small a space?"
+            }
         );
         setHeadTexture(outputStack, slimefunLoader);
 
