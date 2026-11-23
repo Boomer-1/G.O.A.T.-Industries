@@ -45,7 +45,8 @@ class DynamicCrystalCatalogTest {
             DynamicCrystalCatalog.MACHINE_RECIPE_IDS
         );
         assertEquals(16_000_000, DynamicCrystalCatalog.ENERGY_CAPACITY);
-        assertEquals(50_000, DynamicCrystalCatalog.ENERGY_PER_TICK);
+        assertEquals(500_000, DynamicCrystalCatalog.ENERGY_PER_TICK);
+        assertEquals("DEEPSLATE_TILES", DynamicCrystalCatalog.MACHINE_MATERIAL);
         assertEquals(600, DynamicCrystalCatalog.PROCESSING_TICKS);
     }
 

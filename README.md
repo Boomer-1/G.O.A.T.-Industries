@@ -49,7 +49,7 @@ The machine is crafted in the Enhanced Crafting Table using this 3×3 arrangemen
 8. Laboratory Laser Drill
 9. Plutonium
 
-The machine connects to Slimefun's energy network. It has a 16,000,000 J energy buffer and consumes 50,000 J per tick, equivalent to 1,000,000 J/s at 20 ticks per second. Each recipe takes 600 ticks (30 seconds).
+The machine uses Deepslate Tiles as its item texture and connects to Slimefun's energy network. It has a 16,000,000 J energy buffer and consumes 500,000 J per Slimefun tick. Slimefun runs two machine ticks per second, so this is equivalent to 1,000,000 J/s. Each recipe takes 600 Slimefun ticks (30 seconds).
 
 Each recipe requires one of each of the nine Crystamae Historia crystal types in alphabetical order:
 

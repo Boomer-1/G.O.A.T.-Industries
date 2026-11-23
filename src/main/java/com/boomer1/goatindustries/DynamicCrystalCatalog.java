@@ -6,6 +6,7 @@ public final class DynamicCrystalCatalog {
 
     public static final String MACHINE_ID = "GOAT_DYNAMIC_CRYSTAL_FORMER";
     public static final String MACHINE_NAME = "Dynamic Crystal Former";
+    public static final String MACHINE_MATERIAL = "DEEPSLATE_TILES";
     public static final String MACHINE_LORE = "Harnesses the power of the Crystae";
 
     public static final List<String> CRYSTAL_TYPES = List.of(
@@ -48,7 +49,7 @@ public final class DynamicCrystalCatalog {
     );
 
     public static final int ENERGY_CAPACITY = 16_000_000;
-    public static final int ENERGY_PER_TICK = 50_000;
+    public static final int ENERGY_PER_TICK = 500_000;
     public static final int PROCESSING_TICKS = 600;
     public static final int OUTPUT_SLOT = 16;
     public static final int PROGRESS_SLOT = 22;

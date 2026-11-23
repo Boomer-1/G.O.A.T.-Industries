@@ -58,13 +58,14 @@ public final class DynamicCrystalFormer {
         ItemStack machineStack = createSlimefunStack(
             slimefunLoader,
             DynamicCrystalCatalog.MACHINE_ID,
-            Material.FURNACE,
+            Material.valueOf(DynamicCrystalCatalog.MACHINE_MATERIAL),
             ChatColor.GOLD + DynamicCrystalCatalog.MACHINE_NAME,
             new String[] {
                 ChatColor.GRAY + DynamicCrystalCatalog.MACHINE_LORE,
                 "",
                 ChatColor.DARK_PURPLE + "End-Game Machine",
-                ChatColor.GRAY + "Energy Consumption: 1,000,000 J/s",
+                ChatColor.GRAY + "Energy Consumption: 500,000 J/tick",
+                ChatColor.GRAY + "Equivalent to 1,000,000 J/s",
                 ChatColor.GRAY + "Energy Buffer: 16,000,000 J"
             }
         );
