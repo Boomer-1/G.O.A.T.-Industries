@@ -112,7 +112,7 @@ public final class ImplosivePress {
         ItemStack compressedCobblestoneForGuide = resolveItem(
             slimefunLoader, COMPRESSED_COBBLESTONE_ID
         );
-        compressedCobblestoneForGuide.setAmount(1);
+        compressedCobblestoneForGuide.setAmount(64);
         ItemStack[] implosiveCobblestoneGuideRecipe = new ItemStack[9];
         implosiveCobblestoneGuideRecipe[4] = compressedCobblestoneForGuide;
         Object outputItem = outputConstructor.newInstance(
