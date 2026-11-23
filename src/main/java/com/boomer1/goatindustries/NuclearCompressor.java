@@ -116,10 +116,12 @@ public final class NuclearCompressor {
             }
         );
         ItemStack uuMatterForGuide = resolveSlimefunItem(slimefunLoader, UU_MATTER_ID);
-        uuMatterForGuide.setAmount(64);
+        uuMatterForGuide.setAmount(1);
+        ItemStack[] nuclearUuMatterGuideRecipe = new ItemStack[9];
+        nuclearUuMatterGuideRecipe[4] = uuMatterForGuide;
         Object nuclearUuMatter = radioactiveConstructor.newInstance(
             resourceGroup, veryDeadly, nuclearUuMatterStack, nuclearCompressorRecipeType,
-            new ItemStack[] {uuMatterForGuide}
+            nuclearUuMatterGuideRecipe
         );
         registerItem.invoke(nuclearUuMatter, addon);
 
