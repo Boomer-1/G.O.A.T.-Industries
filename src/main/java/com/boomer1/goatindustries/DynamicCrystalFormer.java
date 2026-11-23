@@ -185,7 +185,6 @@ public final class DynamicCrystalFormer {
             new ItemStack[] {omegaStack.clone()}
         );
 
-        plugin.getLogger().info("[G.O.A.T. Industries] Dynamic Crystal Former registered with six exact 3x3 crystal recipes and the Omega Supercrystal recipe.");
     }
 
     private static Class<?> createMachineClass(
