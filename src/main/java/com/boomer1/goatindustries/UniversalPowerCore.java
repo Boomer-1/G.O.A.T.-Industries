@@ -4,12 +4,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import net.bytebuddy.ByteBuddy;
-import net.bytebuddy.description.modifier.Visibility;
-import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
-import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
-import net.bytebuddy.implementation.MethodCall;
-
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -42,8 +36,8 @@ public final class UniversalPowerCore {
         "io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem";
     private static final String RECIPE_TYPE_CLASS =
         "io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType";
-    private static final String NOT_PLACEABLE_CLASS =
-        "io.github.thebusybiscuit.slimefun4.core.attributes.NotPlaceable";
+    private static final String UNPLACEABLE_BLOCK_CLASS =
+        "io.github.thebusybiscuit.slimefun4.implementation.items.blocks.UnplaceableBlock";
     private static final String ADDON_CLASS =
         "io.github.thebusybiscuit.slimefun4.api.SlimefunAddon";
 
@@ -56,7 +50,7 @@ public final class UniversalPowerCore {
         Class<?> itemGroupClass = Class.forName(ITEM_GROUP_CLASS, true, slimefunLoader);
         Class<?> itemStackClass = Class.forName(ITEM_STACK_CLASS, true, slimefunLoader);
         Class<?> recipeTypeClass = Class.forName(RECIPE_TYPE_CLASS, true, slimefunLoader);
-        Class<?> slimefunItemClass = Class.forName(SLIMEFUN_ITEM_CLASS, true, slimefunLoader);
+        Class<?> unplaceableBlockClass = Class.forName(UNPLACEABLE_BLOCK_CLASS, true, slimefunLoader);
 
         Constructor<?> stackConstructor = itemStackClass.getConstructor(
             String.class, Material.class, String.class, String[].class
@@ -71,16 +65,18 @@ public final class UniversalPowerCore {
         ItemStack[] recipe = resolveRecipe(slimefunLoader);
         Object enhancedCraftingTable = recipeTypeClass.getField("ENHANCED_CRAFTING_TABLE").get(null);
 
-        Class<?> coreClass = createNotPlaceableClass(plugin.getClass().getClassLoader(), slimefunLoader);
-        Constructor<?> coreConstructor = coreClass.getConstructor(
+        Constructor<?> coreConstructor = unplaceableBlockClass.getConstructor(
             itemGroupClass, itemStackClass, recipeTypeClass, ItemStack[].class
         );
         Object core = coreConstructor.newInstance(itemGroup, coreStack, enhancedCraftingTable, recipe);
 
-        Method register = slimefunItemClass.getMethod("register", Class.forName(ADDON_CLASS, true, slimefunLoader));
+        Class<?> addonClass = Class.forName(ADDON_CLASS, true, slimefunLoader);
+        Method register = Class.forName(SLIMEFUN_ITEM_CLASS, true, slimefunLoader)
+            .getMethod("register", addonClass);
         register.invoke(core, addon);
 
-        plugin.getLogger().info("[G.O.A.T. Industries] Universal Power Core registered with its exact 3x3 recipe.");
+        plugin.getLogger().info("[G.O.A.T. Industries] Universal Power Core registered as an unplaceable item "
+            + "with its exact 3x3 recipe.");
     }
 
     private static ItemStack[] resolveRecipe(ClassLoader slimefunLoader) throws ReflectiveOperationException {
@@ -98,30 +94,5 @@ public final class UniversalPowerCore {
             ingredients[slot] = ((ItemStack) getItem.invoke(item)).clone();
         }
         return ingredients;
-    }
-
-    private static Class<?> createNotPlaceableClass(ClassLoader pluginLoader, ClassLoader slimefunLoader)
-        throws ReflectiveOperationException {
-
-        Class<?> slimefunItemClass = Class.forName(SLIMEFUN_ITEM_CLASS, true, slimefunLoader);
-        Class<?> itemGroupClass = Class.forName(ITEM_GROUP_CLASS, true, slimefunLoader);
-        Class<?> itemStackClass = Class.forName(ITEM_STACK_CLASS, true, slimefunLoader);
-        Class<?> recipeTypeClass = Class.forName(RECIPE_TYPE_CLASS, true, slimefunLoader);
-        Class<?> notPlaceableClass = Class.forName(NOT_PLACEABLE_CLASS, true, slimefunLoader);
-
-        Constructor<?> superConstructor = slimefunItemClass.getConstructor(
-            itemGroupClass, itemStackClass, recipeTypeClass, ItemStack[].class
-        );
-
-        return new ByteBuddy()
-            .subclass(slimefunItemClass, ConstructorStrategy.Default.NO_CONSTRUCTORS)
-            .implement(notPlaceableClass)
-            .name("com.boomer1.goatindustries.generated.NotPlaceableUniversalPowerCore")
-            .defineConstructor(Visibility.PUBLIC)
-            .withParameters(itemGroupClass, itemStackClass, recipeTypeClass, ItemStack[].class)
-            .intercept(MethodCall.invoke(superConstructor).withAllArguments())
-            .make()
-            .load(pluginLoader, ClassLoadingStrategy.Default.WRAPPER)
-            .getLoaded();
     }
 }
