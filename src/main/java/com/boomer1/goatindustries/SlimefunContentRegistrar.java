@@ -115,8 +115,8 @@ public final class SlimefunContentRegistrar {
         UniversalPowerCore.register(plugin, loader, resourcesGroup, addon);
         GalacticSpaceball.register(plugin, loader, resourcesGroup, addon);
         DynamicCrystalFormer.register(plugin, loader, machinesGroup, resourcesGroup, addon);
-        NuclearCompressor.register(plugin, loader, machinesGroup, addon);
-        ImplosivePress.register(plugin, loader, machinesGroup, addon);
+        NuclearCompressor.register(plugin, loader, machinesGroup, resourcesGroup, addon);
+        ImplosivePress.register(plugin, loader, machinesGroup, resourcesGroup, addon);
         SuperSupremeCore.register(plugin, loader, resourcesGroup, addon);
         SuperDaxi.register(plugin, loader, resourcesGroup, addon);
 
