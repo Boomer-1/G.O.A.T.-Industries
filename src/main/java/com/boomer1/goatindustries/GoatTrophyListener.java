@@ -8,10 +8,13 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.ItemDisplay.ItemDisplayTransform;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -64,17 +67,12 @@ public final class GoatTrophyListener implements Listener {
         ItemDisplay display = null;
         try {
             display = clickedBlock.getWorld().spawn(displayLocation, ItemDisplay.class);
-            ItemStack displayItem = new ItemStack(Material.GOAT_SPAWN_EGG);
-            ItemMeta meta = displayItem.getItemMeta();
-            meta.setDisplayName(ChatColor.GOLD + "G.O.A.T.");
-            displayItem.setItemMeta(meta);
-
-            display.setItemStack(displayItem);
+            display.setItemStack(heldItem.clone());
             display.setItemDisplayTransform(ItemDisplayTransform.GROUND);
             display.setCustomName(ChatColor.GOLD + "G.O.A.T.");
             display.setCustomNameVisible(true);
             display.setPersistent(true);
-            display.setInvulnerable(true);
+            display.setInvulnerable(false);
             display.setSilent(true);
             display.getPersistentDataContainer().set(displayKey, PersistentDataType.BYTE, (byte) 1);
 
@@ -91,6 +89,38 @@ public final class GoatTrophyListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onTrophyDamaged(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof ItemDisplay display)
+            || !isPlacedTrophy(display)
+            || !(event.getDamager() instanceof Player player)) {
+            return;
+        }
+
+        event.setCancelled(true);
+
+        ItemStack trophy = display.getItemStack().clone();
+        if (!isTrophy(trophy)) {
+            trophy = createTrophyItem();
+        }
+
+        display.remove();
+        giveTrophy(player, trophy);
+        player.sendMessage(ChatColor.GOLD + "You recovered the G.O.A.T. Trophy.");
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBlockPlace(BlockPlaceEvent event) {
+        Location placedLocation = event.getBlockPlaced().getLocation();
+        if (!hasTrophyAtBlock(placedLocation)) {
+            return;
+        }
+
+        event.setCancelled(true);
+        event.getPlayer().sendMessage(ChatColor.RED
+            + "You cannot place a block inside the space occupied by the G.O.A.T. Trophy.");
+    }
+
     private boolean isTrophy(ItemStack item) {
         if (item == null || item.getType() != Material.GOAT_SPAWN_EGG || !item.hasItemMeta()) {
             return false;
@@ -101,14 +131,53 @@ public final class GoatTrophyListener implements Listener {
         return marker != null && marker == (byte) 1;
     }
 
+    private boolean isPlacedTrophy(ItemDisplay display) {
+        Byte marker = display.getPersistentDataContainer().get(displayKey, PersistentDataType.BYTE);
+        return marker != null && marker == (byte) 1;
+    }
+
     private boolean hasTrophyAt(Location location) {
         for (Entity entity : location.getWorld().getNearbyEntities(location, 1.0, 1.0, 1.0)) {
-            if (entity instanceof ItemDisplay display
-                && display.getPersistentDataContainer().has(displayKey, PersistentDataType.BYTE)) {
+            if (entity instanceof ItemDisplay display && isPlacedTrophy(display)) {
                 return true;
             }
         }
         return false;
+    }
+
+    private boolean hasTrophyAtBlock(Location blockLocation) {
+        for (Entity entity : blockLocation.getWorld().getNearbyEntities(
+            blockLocation.clone().add(0.5, 0.5, 0.5), 0.75, 0.75, 0.75)) {
+            if (entity instanceof ItemDisplay display
+                && isPlacedTrophy(display)
+                && display.getLocation().getBlockX() == blockLocation.getBlockX()
+                && display.getLocation().getBlockY() == blockLocation.getBlockY()
+                && display.getLocation().getBlockZ() == blockLocation.getBlockZ()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private ItemStack createTrophyItem() {
+        ItemStack trophy = new ItemStack(Material.GOAT_SPAWN_EGG);
+        ItemMeta meta = trophy.getItemMeta();
+        meta.setDisplayName(ChatColor.GOLD + "G.O.A.T. Trophy");
+        meta.getPersistentDataContainer().set(itemKey, PersistentDataType.BYTE, (byte) 1);
+        trophy.setItemMeta(meta);
+        return trophy;
+    }
+
+    private void giveTrophy(Player player, ItemStack trophy) {
+        if (trophy == null || trophy.getType() != Material.GOAT_SPAWN_EGG) {
+            trophy = createTrophyItem();
+        }
+
+        if (player.getInventory().addItem(trophy).isEmpty()) {
+            return;
+        }
+
+        player.getWorld().dropItemNaturally(player.getLocation(), trophy);
     }
 
     private ItemStack getHeldItem(org.bukkit.inventory.PlayerInventory inventory, EquipmentSlot hand) {
