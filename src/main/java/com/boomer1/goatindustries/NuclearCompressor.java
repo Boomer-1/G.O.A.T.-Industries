@@ -70,6 +70,20 @@ public final class NuclearCompressor {
         Method registerItem = slimefunItemClass.getMethod("register", addonClass);
         Object nullRecipe = recipeTypeClass.getField("NULL").get(null);
 
+        ItemStack machineStack = createSlimefunStack(
+            slimefunLoader,
+            MACHINE_ID,
+            Material.BLAST_FURNACE,
+            ChatColor.GOLD + MACHINE_NAME,
+            new String[] {
+                ChatColor.GRAY + "Lite Expansion has nothing on this.",
+                "",
+                ChatColor.GRAY + "Energy Consumption: 1,000,000 J/s",
+                ChatColor.GRAY + "Energy Buffer: 16,000,000 J",
+                ChatColor.DARK_RED + "Breaking this machine will cause all stored UU matter to be lost"
+            }
+        );
+
         ItemStack nuclearUuMatterStack = createSlimefunStack(
             slimefunLoader,
             OUTPUT_ID,
@@ -85,27 +99,26 @@ public final class NuclearCompressor {
         @SuppressWarnings({"unchecked", "rawtypes"})
         Object veryDeadly = Enum.valueOf((Class<? extends Enum>) radioactivityClass.asSubclass(Enum.class), "VERY_DEADLY");
         Class<?> radioactiveItemClass = Class.forName(RADIOACTIVE_ITEM_CLASS, true, slimefunLoader);
-        Constructor<?> radioactiveConstructor = radioactiveItemClass.getConstructor(
-            itemGroupClass, radioactivityClass, itemStackClass, recipeTypeClass, ItemStack[].class
+        Constructor<?> recipeTypeConstructor = recipeTypeClass.getConstructor(
+            org.bukkit.NamespacedKey.class, ItemStack.class, java.util.function.BiConsumer.class,
+            String[].class
         );
-        Object nuclearUuMatter = radioactiveConstructor.newInstance(
-            resourceGroup, veryDeadly, nuclearUuMatterStack, nullRecipe, new ItemStack[0]
-        );
-        registerItem.invoke(nuclearUuMatter, addon);
-
-        ItemStack machineStack = createSlimefunStack(
-            slimefunLoader,
-            MACHINE_ID,
-            Material.BLAST_FURNACE,
-            ChatColor.GOLD + MACHINE_NAME,
+        Object nuclearCompressorRecipeType = recipeTypeConstructor.newInstance(
+            new org.bukkit.NamespacedKey(plugin, "nuclear_compressor"),
+            machineStack,
+            null,
             new String[] {
-                ChatColor.GRAY + "Lite Expansion has nothing on this.",
-                "",
-                ChatColor.GRAY + "Energy Consumption: 1,000,000 J/s",
-                ChatColor.GRAY + "Energy Buffer: 16,000,000 J",
-                ChatColor.DARK_RED + "Breaking this machine will cause all stored UU matter to be lost"
+                ChatColor.GREEN + "Process UU Matter in the Nuclear Compressor",
+                ChatColor.GRAY + "1,000,000 UU Matter required per output"
             }
         );
+        ItemStack uuMatterForGuide = resolveSlimefunItem(slimefunLoader, UU_MATTER_ID);
+        uuMatterForGuide.setAmount(64);
+        Object nuclearUuMatter = radioactiveConstructor.newInstance(
+            resourceGroup, veryDeadly, nuclearUuMatterStack, nuclearCompressorRecipeType,
+            new ItemStack[] {uuMatterForGuide}
+        );
+        registerItem.invoke(nuclearUuMatter, addon);
 
         ItemStack[] craftingRecipe = resolveRecipe(slimefunLoader);
         Object enhancedCraftingTable = recipeTypeClass.getField("ENHANCED_CRAFTING_TABLE").get(null);
