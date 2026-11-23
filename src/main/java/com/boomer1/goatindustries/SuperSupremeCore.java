@@ -106,10 +106,6 @@ public final class SuperSupremeCore {
             slimefunLoader, supremeLoader, slimefunItemClass, outputStack, recipe
         );
 
-        plugin.getLogger().info(
-            "[G.O.A.T. Industries] Super Supreme Core registered for the Magical Fabricator "
-                + "and all three Electric Magical Machine tiers."
-        );
     }
 
     private static Object getMultiblockMagicalRecipeType(ClassLoader supremeLoader)
