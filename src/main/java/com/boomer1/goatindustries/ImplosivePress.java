@@ -13,6 +13,7 @@ import net.bytebuddy.matcher.ElementMatchers;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -102,9 +103,19 @@ public final class ImplosivePress {
         Constructor<?> outputConstructor = unplaceableBlockClass.getConstructor(
             itemGroupClass, itemStackClass, recipeTypeClass, ItemStack[].class
         );
-        Object nullRecipe = recipeTypeClass.getField("NULL").get(null);
+        Constructor<?> displayRecipeTypeConstructor = recipeTypeClass.getConstructor(
+            NamespacedKey.class, ItemStack.class
+        );
+        Object implosivePressRecipeType = displayRecipeTypeConstructor.newInstance(
+            new NamespacedKey(plugin, "implosive_press"), machineStack
+        );
+        ItemStack compressedCobblestoneForGuide = resolveItem(
+            slimefunLoader, COMPRESSED_COBBLESTONE_ID
+        );
+        compressedCobblestoneForGuide.setAmount(64);
         Object outputItem = outputConstructor.newInstance(
-            resourceGroup, outputStack, nullRecipe, new ItemStack[0]
+            resourceGroup, outputStack, implosivePressRecipeType,
+            new ItemStack[] {compressedCobblestoneForGuide}
         );
         Method registerItem = slimefunItemClass.getMethod("register", addonClass);
         registerItem.invoke(outputItem, addon);
