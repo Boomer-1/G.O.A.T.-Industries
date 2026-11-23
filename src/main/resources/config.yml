@@ -1,0 +1,13 @@
+# G.O.A.T. Industries private notification settings.
+# Keep the webhook URL on the server only. Never commit a real URL to GitHub.
+
+discord:
+  # Set to true only after entering your private Discord webhook URL below.
+  enabled: false
+
+  # Paste the webhook URL into this field on the Minecraft server.
+  # Leave blank in the public repository.
+  webhook-url: ""
+
+  # This label appears in trophy-crafting notifications.
+  server-name: "G.O.A.T. Industries"
