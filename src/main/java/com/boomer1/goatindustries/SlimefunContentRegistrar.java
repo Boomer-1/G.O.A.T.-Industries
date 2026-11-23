@@ -105,13 +105,14 @@ public final class SlimefunContentRegistrar {
         DynamicCrystalFormer.register(plugin, loader, itemGroup, addon);
         NuclearCompressor.register(plugin, loader, itemGroup, addon);
         ImplosivePress.register(plugin, loader, itemGroup, addon);
+        SuperSupremeCore.register(plugin, loader, itemGroup, addon);
 
         plugin.getServer().getPluginManager().registerEvents(new DynamicCrystalPlacementListener(plugin), plugin);
         plugin.getServer().getPluginManager().registerEvents(new GoatTrophyListener(plugin), plugin);
         new EmcDiamondRewardManager(plugin, emcTech, emcDiamondStack).start();
 
         plugin.getLogger().info("[G.O.A.T. Industries] Registered EMC Diamond, G.O.A.T. Trophy, "
-            + "Universal Power Core, Galactic Spaceball, Nuclear Compressor, Nuclear UU Matter, Implosive Press, Implosive Cobblestone, pyramid guide entries, Dynamic Crystal Former, and all six Dynamic Crystals.");
+            + "Universal Power Core, Galactic Spaceball, Nuclear Compressor, Nuclear UU Matter, Implosive Press, Implosive Cobblestone, Super Supreme Core, pyramid guide entries, Dynamic Crystal Former, and all six Dynamic Crystals.");
     }
 
     private static ItemStack createSlimefunStack(ClassLoader loader, String id, Material material,
