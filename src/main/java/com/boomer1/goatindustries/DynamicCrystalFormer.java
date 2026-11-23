@@ -51,7 +51,7 @@ public final class DynamicCrystalFormer {
     private DynamicCrystalFormer() {
     }
 
-    public static void register(JavaPlugin plugin, ClassLoader slimefunLoader, Object itemGroup, Object addon)
+    public static void register(JavaPlugin plugin, ClassLoader slimefunLoader, Object machineGroup, Object resourceGroup, Object addon)
         throws ReflectiveOperationException, java.io.IOException {
 
         Class<?> itemGroupClass = Class.forName(ITEM_GROUP_CLASS, true, slimefunLoader);
@@ -85,7 +85,7 @@ public final class DynamicCrystalFormer {
         Constructor<?> machineConstructor = machineClass.getConstructor(
             itemGroupClass, itemStackClass, recipeTypeClass, ItemStack[].class
         );
-        Object machine = machineConstructor.newInstance(itemGroup, machineStack, enhancedCraftingTable, machineCraftingRecipe);
+        Object machine = machineConstructor.newInstance(machineGroup, machineStack, enhancedCraftingTable, machineCraftingRecipe);
 
         machineClass.getMethod("setCapacity", int.class).invoke(machine, DynamicCrystalCatalog.ENERGY_CAPACITY);
         machineClass.getMethod("setEnergyConsumption", int.class).invoke(machine, DynamicCrystalCatalog.ENERGY_PER_TICK);
@@ -129,7 +129,7 @@ public final class DynamicCrystalFormer {
             outputStack.setItemMeta(outputMeta);
 
             ItemStack[] inputs = resolveItems(slimefunLoader, DynamicCrystalCatalog.inputIds(output.rarity()));
-            Object outputItem = outputItemConstructor.newInstance(itemGroup, outputStack, dynamicCrystalRecipeType, inputs);
+            Object outputItem = outputItemConstructor.newInstance(resourceGroup, outputStack, dynamicCrystalRecipeType, inputs);
             registerItem.invoke(outputItem, addon);
 
             registerMachineRecipe.invoke(
@@ -175,7 +175,7 @@ public final class DynamicCrystalFormer {
         }
 
         Object omegaItem = outputItemConstructor.newInstance(
-            itemGroup, omegaStack, dynamicCrystalRecipeType, omegaInputs
+            resourceGroup, omegaStack, dynamicCrystalRecipeType, omegaInputs
         );
         registerItem.invoke(omegaItem, addon);
         registerMachineRecipe.invoke(
