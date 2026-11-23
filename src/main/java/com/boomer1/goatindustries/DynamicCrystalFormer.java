@@ -440,7 +440,8 @@ public final class DynamicCrystalFormer {
                 }
 
                 // Match Slimefun AContainer: block inserting items, allow collecting completed output.
-                addItem.invoke(preset, DynamicCrystalCatalog.OUTPUT_SLOT, background.clone(), outputHandler);
+                preset.getClass().getMethod("addMenuClickHandler", int.class, clickHandlerClass)
+                    .invoke(preset, DynamicCrystalCatalog.OUTPUT_SLOT, outputHandler);
 
                 ItemStack progress = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
                 ItemMeta progressMeta = progress.getItemMeta();
