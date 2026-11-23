@@ -19,6 +19,8 @@ public final class SlimefunContentRegistrar {
 
     private static final String SLIMEFUN_ADDON = "io.github.thebusybiscuit.slimefun4.api.SlimefunAddon";
     private static final String ITEM_GROUP = "io.github.thebusybiscuit.slimefun4.api.items.ItemGroup";
+    private static final String NESTED_ITEM_GROUP = "io.github.thebusybiscuit.slimefun4.api.items.groups.NestedItemGroup";
+    private static final String SUB_ITEM_GROUP = "io.github.thebusybiscuit.slimefun4.api.items.groups.SubItemGroup";
     private static final String SLIMEFUN_ITEM_STACK =
         "io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack";
     private static final String SLIMEFUN_ITEM = "io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem";
@@ -40,8 +42,21 @@ public final class SlimefunContentRegistrar {
         groupIcon.setItemMeta(groupMeta);
 
         Class<?> itemGroupClass = Class.forName(ITEM_GROUP, true, loader);
-        Constructor<?> groupConstructor = itemGroupClass.getConstructor(NamespacedKey.class, ItemStack.class);
+        Class<?> nestedItemGroupClass = Class.forName(NESTED_ITEM_GROUP, true, loader);
+        Constructor<?> groupConstructor = nestedItemGroupClass.getConstructor(NamespacedKey.class, ItemStack.class);
         Object itemGroup = groupConstructor.newInstance(new NamespacedKey(plugin, "goat_industries"), groupIcon);
+
+        Class<?> subItemGroupClass = Class.forName(SUB_ITEM_GROUP, true, loader);
+        Constructor<?> subGroupConstructor = subItemGroupClass.getConstructor(
+            NamespacedKey.class, nestedItemGroupClass, ItemStack.class
+        );
+
+        Object trophyGroup = createSubGroup(plugin, subGroupConstructor, itemGroup, "goat_trophy",
+            Material.GOAT_SPAWN_EGG, ChatColor.GOLD + "The Goat Trophy");
+        Object machinesGroup = createSubGroup(plugin, subGroupConstructor, itemGroup, "machines",
+            Material.BLAST_FURNACE, ChatColor.GOLD + "Machines");
+        Object resourcesGroup = createSubGroup(plugin, subGroupConstructor, itemGroup, "resources",
+            Material.DIAMOND, ChatColor.GOLD + "Resources");
 
         NamespacedKey trophyMarker = new NamespacedKey(plugin, "goat_trophy");
         ItemStack trophyStack = createSlimefunStack(loader, "GOAT_TROPHY", Material.GOAT_SPAWN_EGG,
@@ -90,20 +105,20 @@ public final class SlimefunContentRegistrar {
         Constructor<?> itemConstructor = slimefunItemClass.getConstructor(itemGroupClass,
             slimefunItemStackClass, recipeTypeClass, ItemStack[].class);
 
-        Object guideItem = itemConstructor.newInstance(itemGroup, guideStack, nullRecipe, new ItemStack[0]);
+        Object guideItem = itemConstructor.newInstance(trophyGroup, guideStack, nullRecipe, new ItemStack[0]);
         slimefunItemClass.getMethod("register", addonClass).invoke(guideItem, addon);
 
-        Object emcDiamondItem = itemConstructor.newInstance(itemGroup, emcDiamondStack, nullRecipe,
+        Object emcDiamondItem = itemConstructor.newInstance(resourcesGroup, emcDiamondStack, nullRecipe,
             new ItemStack[0]);
         slimefunItemClass.getMethod("register", addonClass).invoke(emcDiamondItem, addon);
 
-        UniversalPowerCore.register(plugin, loader, itemGroup, addon);
-        GalacticSpaceball.register(plugin, loader, itemGroup, addon);
-        DynamicCrystalFormer.register(plugin, loader, itemGroup, addon);
-        NuclearCompressor.register(plugin, loader, itemGroup, addon);
-        ImplosivePress.register(plugin, loader, itemGroup, addon);
-        SuperSupremeCore.register(plugin, loader, itemGroup, addon);
-        SuperDaxi.register(plugin, loader, itemGroup, addon);
+        UniversalPowerCore.register(plugin, loader, resourcesGroup, addon);
+        GalacticSpaceball.register(plugin, loader, resourcesGroup, addon);
+        DynamicCrystalFormer.register(plugin, loader, machinesGroup, resourcesGroup, addon);
+        NuclearCompressor.register(plugin, loader, machinesGroup, addon);
+        ImplosivePress.register(plugin, loader, machinesGroup, addon);
+        SuperSupremeCore.register(plugin, loader, resourcesGroup, addon);
+        SuperDaxi.register(plugin, loader, resourcesGroup, addon);
 
         ItemStack[] trophyRecipe = resolveRecipe(loader, new String[] {
             "GOAT_SUPER_DAXI",
@@ -118,7 +133,7 @@ public final class SlimefunContentRegistrar {
         });
         Object enhancedCraftingTable = recipeTypeClass.getField("ENHANCED_CRAFTING_TABLE").get(null);
         Object trophyItem = itemConstructor.newInstance(
-            itemGroup, trophyStack, enhancedCraftingTable, trophyRecipe
+            trophyGroup, trophyStack, enhancedCraftingTable, trophyRecipe
         );
         slimefunItemClass.getMethod("register", addonClass).invoke(trophyItem, addon);
 
@@ -128,6 +143,16 @@ public final class SlimefunContentRegistrar {
 
         plugin.getLogger().info("[G.O.A.T. Industries] Registered EMC Diamond, G.O.A.T. Trophy, "
             + "Universal Power Core, Galactic Spaceball, Nuclear Compressor, Nuclear UU Matter, Implosive Press, Implosive Cobblestone, Super Supreme Core, Super Daxi, pyramid guide entries, Dynamic Crystal Former, and all six Dynamic Crystals.");
+    }
+
+    private static Object createSubGroup(JavaPlugin plugin, Constructor<?> constructor, Object parent,
+                                         String key, Material icon, String displayName)
+        throws ReflectiveOperationException {
+        ItemStack item = new ItemStack(icon);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(displayName);
+        item.setItemMeta(meta);
+        return constructor.newInstance(new NamespacedKey(plugin, key), parent, item);
     }
 
     private static ItemStack[] resolveRecipe(ClassLoader loader, String[] itemIds)
