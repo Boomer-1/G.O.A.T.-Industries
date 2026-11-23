@@ -167,6 +167,7 @@ public final class DynamicCrystalFormer {
             DynamicCrystalCatalog.OMEGA_SUPERCRYSTAL_INPUT_IDS
         );
         for (int i = 0; i < omegaIngredientPositions.length; i++) {
+            omegaIngredients[i].setAmount(9);
             omegaInputs[omegaIngredientPositions[i]] = omegaIngredients[i];
         }
         // The center row is intentionally empty; AIR entries preserve the exact 3x3 recipe shape.
