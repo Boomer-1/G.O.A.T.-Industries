@@ -72,6 +72,14 @@ public final class DependencyVerifier {
             }
         }
 
+        if (enabledItemIds != null) {
+            for (DependencyCatalog.ItemRequirement coreItem : DependencyCatalog.coreItems()) {
+                if (!enabledItemIds.contains(coreItem.id())) {
+                    missingItems.add(coreItem);
+                }
+            }
+        }
+
         if (registryFailure != null) {
             plugin.getLogger().severe("[G.O.A.T. Industries] Item verification could not be completed: "
                 + registryFailure);

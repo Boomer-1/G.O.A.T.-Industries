@@ -4,9 +4,13 @@ The ultimate Slimefun addon.
 
 ## Current test build
 
-This first test build is a dependency preflight only. It does not add recipes, machines, or the G.O.A.T. trophy yet.
+This build includes the EMC Diamond achievement reward, G.O.A.T. Trophy and pyramid guide, and the Dynamic Crystal Former with six Dynamic Crystal outputs.
 
-At startup it checks all 13 required addon plugins and the required Slimefun item IDs:
+At startup, G.O.A.T. Industries verifies Slimefun and all 14 required addon plugins. It also checks every required Slimefun item ID in the enabled-item registry, including the Slimefun-core Plutonium ingredient. An addon is confirmed only when its plugin is installed and enabled and all catalogued item IDs are present. The checker continues through all dependencies even after finding a missing plugin or item.
+
+If a required plugin or item is missing, or Slimefun's item registry cannot be read, G.O.A.T. Industries disables itself and reports the missing requirements.
+
+## Required addons
 
 1. InfinityExpansion2
 2. TranscEndence
@@ -20,29 +24,52 @@ At startup it checks all 13 required addon plugins and the required Slimefun ite
 10. DankTech2
 11. Networks
 12. Crystamae Historia
-13. EMCTech
+13. Laboratory
+14. EMCTech
 
-Each addon is checked completely before its success line is printed. An addon is confirmed only when its plugin is installed and enabled and every catalogued item for that addon is present in Slimefun's enabled-item registry. The checker continues through all 13 addons even after finding a missing plugin or item.
+The Dynamic Crystal Former specifically requires these registered items:
 
-After all addons have been checked, missing addons and missing items are listed in the console. G.O.A.T. Industries then disables itself if any requirement is missing or if Slimefun's item registry cannot be read.
+- Infinity Expansion 2: Void Smeltery (`VOID_SMELTERY`), Void Quarry (`QUARRY_3`), and Void Capacitor (`VOID_CAPACITOR`).
+- Supreme: Electric Core Fabricator III (`SUPREME_ELECTRIC_CORE_III`).
+- Crystamae Historia: Exalted Beacon (`CRY_EXALTED_BEACON`) and all 54 rarity/type crystals.
+- Laboratory: Laser Drill (`LAB_LASER_DRILL`).
+- Slimefun: Plutonium (`PLUTONIUM`).
 
-## Current item checks
+## Dynamic Crystal Former
 
-- InfinityExpansion2: 2 items.
-- TranscEndence: 5 Daxi items.
-- Supreme: 12 specified items, including Supreme Attribute Bomb.
-- MomoTech: all 50 compressed cobblestone levels.
-- LiteXpansion: UU Matter.
-- Galactifun: 9 specified items.
-- Tsingshan Technology: PRO Generator.
-- Ultimate Generators 2: LAMBDA-λ Electricity Storage, catalogued as `LAMBDA_ELECTRICITY_STORAGE`.
-- FNAmplifications: FN Generator R12.
-- DankTech2: Dank Pack Tier 9.
-- Networks: Quantum Storage 140.7T.
-- Crystamae Historia: all 54 crystals (six rarities × nine crystal types).
-- EMCTech: plugin presence/enabled state only; no EMCTech item has been specified.
+The machine is crafted in the Enhanced Crafting Table using this 3×3 arrangement, left-to-right and top-to-bottom:
 
-Some collected addon IDs still need a version-by-version comparison against the SlimefunGuguProject builds. The live server registry check compares the catalogued IDs exactly and reports mismatches verbatim.
+1. Void Smeltery
+2. Void Quarry
+3. Void Smeltery
+4. Supreme Electric Core Fabricator III
+5. Void Capacitor
+6. Supreme Electric Core Fabricator III
+7. Exalted Beacon
+8. Laboratory Laser Drill
+9. Plutonium
+
+The machine connects to Slimefun's energy network. It has a 16,000,000 J energy buffer and consumes 50,000 J per tick, equivalent to 1,000,000 J/s at 20 ticks per second. Each recipe takes 600 ticks (30 seconds).
+
+Each recipe requires one of each of the nine Crystamae Historia crystal types in alphabetical order:
+
+1. Alchemical
+2. Animal
+3. Celestial
+4. Elemental
+5. Historical
+6. Human
+7. Mechanical
+8. Philosophical
+9. Void
+
+There is one recipe for each rarity: Common, Uncommon, Rare, Epic, Mythical, and Unique. Each produces one matching Dynamic Crystal. All six output items use the approved Griffin Upgrade Stone head textures and implement Slimefun's non-placeable item attribute.
+
+Each Dynamic Crystal's Slimefun Guide entry displays its complete 3×3 recipe with the Dynamic Crystal Former as the crafting station. The machine itself displays its Enhanced Crafting Table recipe.
+
+## EMC Diamond reward
+
+Players receive one EMC Diamond when their EMC balance first reaches 1,000,000,000. The achievement is saved in `emcachieved.yml` and persists across restarts. To permit a second reward, remove that player's UUID entry under `claimed:` in that file while the server is stopped.
 
 ## Build
 
@@ -54,7 +81,7 @@ On a machine that has the exact Slimefun dependency installed in its local Maven
 mvn -Dslimefun.local=true clean verify
 ```
 
-The local profile uses the required dependency coordinates:
+The local profile uses these dependency coordinates:
 
 ```xml
 <groupId>com.github.slimefun</groupId>
@@ -63,13 +90,15 @@ The local profile uses the required dependency coordinates:
 <scope>provided</scope>
 ```
 
-The GitHub Actions build compiles against Paper API 1.21.1 and uses reflection for Slimefun registry access, so the CI runner does not need access to a developer's local Maven repository. The produced plugin JAR is available as the `goat-industries-test-jar` workflow artifact.
+The GitHub Actions build compiles against Paper API 1.21.1 and uses reflection for Slimefun API access, so the CI runner does not need a local Slimefun Maven dependency. Byte Buddy is bundled in the plugin JAR for the runtime-generated Slimefun machine subclasses. The produced plugin JAR is uploaded as the `goat-industries-test-jar` workflow artifact.
 
 ## Server test
 
 1. Download the latest test JAR from the GitHub Actions artifact.
 2. Place it in the server's `plugins` folder.
 3. Restart the server.
-4. Review the console lines beginning with `[G.O.A.T. Industries]`.
+4. Confirm the startup dependency checks pass.
+5. Craft the Dynamic Crystal Former in the Enhanced Crafting Table.
+6. Connect it to an energy network, open its 3×3 input GUI, and test each rarity recipe.
 
-This build is only a startup dependency test. No gameplay content is implemented yet.
+The JAR is a test build. Successful compilation does not replace the in-game checks of energy-network behavior, machine inventory handling, and texture rendering.

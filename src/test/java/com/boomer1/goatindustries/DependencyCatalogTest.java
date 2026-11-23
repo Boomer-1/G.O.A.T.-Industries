@@ -11,8 +11,8 @@ import org.junit.jupiter.api.Test;
 class DependencyCatalogTest {
 
     @Test
-    void catalogContainsAllThirteenAddons() {
-        assertEquals(13, DependencyCatalog.addons().size());
+    void catalogContainsAllFourteenAddons() {
+        assertEquals(14, DependencyCatalog.addons().size());
 
         Set<String> addonNames = new HashSet<>();
         DependencyCatalog.addons().forEach(addon -> assertTrue(addonNames.add(addon.name()),
@@ -21,7 +21,7 @@ class DependencyCatalogTest {
 
     @Test
     void catalogContainsAllCollectedRequirementsWithoutDuplicateIds() {
-        assertEquals(145, DependencyCatalog.items().size());
+        assertEquals(152, DependencyCatalog.items().size());
 
         Set<String> ids = new HashSet<>();
         DependencyCatalog.items().forEach(item -> assertTrue(ids.add(item.id()),
@@ -63,6 +63,17 @@ class DependencyCatalogTest {
     }
 
     @Test
+    void catalogContainsDynamicCrystalFormerIngredients() {
+        assertHasItem("InfinityExpansion2", "VOID_SMELTERY");
+        assertHasItem("InfinityExpansion2", "QUARRY_3");
+        assertHasItem("InfinityExpansion2", "VOID_CAPACITOR");
+        assertHasItem("Supreme", "SUPREME_ELECTRIC_CORE_III");
+        assertHasItem("Crystamae Historia", "CRY_EXALTED_BEACON");
+        assertHasItem("Laboratory", "LAB_LASER_DRILL");
+        assertHasItem("Slimefun", "PLUTONIUM");
+    }
+
+    @Test
     void catalogContainsAllFiftyMomotechCobblestoneLevels() {
         long count = DependencyCatalog.items().stream()
             .filter(item -> item.addon().equals("MomoTech"))
@@ -78,7 +89,7 @@ class DependencyCatalogTest {
     @Test
     void catalogContainsAllFiftyFourCrystamaeCrystals() {
         long count = DependencyCatalog.items().stream()
-            .filter(item -> item.addon().equals("Crystamae Historia"))
+            .filter(item -> item.id().startsWith("CRY_CRYSTAL_"))
             .count();
 
         assertEquals(54, count);

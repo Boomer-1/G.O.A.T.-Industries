@@ -100,11 +100,13 @@ public final class SlimefunContentRegistrar {
         Object trophyItem = itemConstructor.newInstance(itemGroup, trophyStack, nullRecipe, new ItemStack[0]);
         slimefunItemClass.getMethod("register", addonClass).invoke(trophyItem, addon);
 
+        DynamicCrystalFormer.register(plugin, loader, itemGroup, addon);
+
         plugin.getServer().getPluginManager().registerEvents(new GoatTrophyListener(plugin), plugin);
         new EmcDiamondRewardManager(plugin, emcTech, emcDiamondStack).start();
 
         plugin.getLogger().info("[G.O.A.T. Industries] Registered EMC Diamond, G.O.A.T. Trophy, "
-            + "and pyramid guide entries.");
+            + "pyramid guide entries, Dynamic Crystal Former, and all six Dynamic Crystals.");
     }
 
     private static ItemStack createSlimefunStack(ClassLoader loader, String id, Material material,

@@ -20,10 +20,16 @@ public final class DependencyCatalog {
         new AddonRequirement("DankTech2", "DankTech2"),
         new AddonRequirement("Networks", "Networks"),
         new AddonRequirement("Crystamae Historia", "CrystamaeHistoria"),
+        new AddonRequirement("Laboratory", "Laboratory"),
         new AddonRequirement("EMCTech", "EMCTech")
     );
 
+    private static final List<ItemRequirement> CORE_ITEMS = List.of(
+        new ItemRequirement("Slimefun", "Plutonium", "PLUTONIUM")
+    );
+
     private static final List<ItemRequirement> ITEMS = buildItems();
+    private static final List<ItemRequirement> ALL_ITEMS = buildAllItems();
 
     private DependencyCatalog() {
     }
@@ -33,11 +39,15 @@ public final class DependencyCatalog {
     }
 
     public static List<ItemRequirement> items() {
-        return ITEMS;
+        return ALL_ITEMS;
+    }
+
+    public static List<ItemRequirement> coreItems() {
+        return CORE_ITEMS;
     }
 
     public static List<ItemRequirement> itemsForAddon(String addon) {
-        return ITEMS.stream()
+        return ALL_ITEMS.stream()
             .filter(item -> item.addon().equals(addon))
             .toList();
     }
@@ -50,6 +60,9 @@ public final class DependencyCatalog {
         add(items, "InfinityExpansion2", "Infinity Workbench", "IE_INFINITY_WORKBENCH");
         add(items, "InfinityExpansion2", "Infinity Singularity Constructor", "IE_SINGULARITY_CONSTRUCTOR_2");
         add(items, "InfinityExpansion2", "Singularity Constructor", "IE_SINGULARITY_CONSTRUCTOR");
+        add(items, "InfinityExpansion2", "Void Smeltery", "VOID_SMELTERY");
+        add(items, "InfinityExpansion2", "Void Quarry", "QUARRY_3");
+        add(items, "InfinityExpansion2", "Void Capacitor", "VOID_CAPACITOR");
 
         add(items, "TranscEndence", "Daxi (S) - Strength", "DAXI_STRENGTH");
         add(items, "TranscEndence", "Daxi (A) - Absorption", "DAXI_ABSORPTION");
@@ -71,6 +84,7 @@ public final class DependencyCatalog {
         add(items, "Supreme", "Supreme Generator", "SUPREME_SUPREME_GENERATOR");
         add(items, "Supreme", "Thornium Quarry", "SUPREME_THORNIUM_QUARRY");
         add(items, "Supreme", "Nuggets of Supreme Quarry", "SUPREME_SUPREME_NUGGETS_QUARRY");
+        add(items, "Supreme", "Electric Core Fabricator III", "SUPREME_ELECTRIC_CORE_III");
 
         for (int level = 0; level < 50; level++) {
             add(items, "MomoTech", "Compressed Cobblestone Level " + (level + 1),
@@ -92,6 +106,7 @@ public final class DependencyCatalog {
         add(items, "Galactifun", "Stargate Controller", "STARGATE_CONTROLLER");
 
         add(items, "Tsingshan Technology", "PRO Generator", "QS_PRO_FADIANJI_FDL");
+        add(items, "Laboratory", "Laser Drill", "LAB_LASER_DRILL");
 
         add(items, "Ultimate Generators 2", "LAMBDA-λ Electricity Storage", "LAMBDA_ELECTRICITY_STORAGE");
 
@@ -114,6 +129,7 @@ public final class DependencyCatalog {
                 add(items, "Crystamae Historia", displayName, id);
             }
         }
+        add(items, "Crystamae Historia", "Exalted Beacon", "CRY_EXALTED_BEACON");
 
         Set<String> uniqueIds = new HashSet<>();
         for (ItemRequirement item : items) {
@@ -123,6 +139,12 @@ public final class DependencyCatalog {
         }
 
         return List.copyOf(items);
+    }
+
+    private static List<ItemRequirement> buildAllItems() {
+        List<ItemRequirement> allItems = new ArrayList<>(ITEMS);
+        allItems.addAll(CORE_ITEMS);
+        return List.copyOf(allItems);
     }
 
     private static void add(List<ItemRequirement> items, String addon, String displayName, String id) {
