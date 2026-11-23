@@ -38,7 +38,7 @@ public final class GalacticSpaceball {
     private static final int[] RECIPE_AMOUNTS = {
         64, 64, 64,
         64, 1, 64,
-        64, 64, 64
+        64, 64, 1
     };
 
     private static final String ITEM_GROUP_CLASS =
