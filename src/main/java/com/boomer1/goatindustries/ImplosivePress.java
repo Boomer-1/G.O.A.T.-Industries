@@ -151,7 +151,7 @@ public final class ImplosivePress {
         registerItem.invoke(machine, addon);
 
         plugin.getServer().getPluginManager().registerEvents(
-            new RedstoneProtectionListener(slimefunLoader), plugin
+            new RedstoneProtectionListener(plugin, slimefunLoader), plugin
         );
 
         plugin.getLogger().info(
@@ -216,51 +216,147 @@ public final class ImplosivePress {
 
     public static final class RedstoneProtectionListener implements Listener {
 
+        private final JavaPlugin plugin;
         private final ClassLoader slimefunLoader;
+        private final java.util.Set<Location> presses = new java.util.HashSet<>();
 
-        public RedstoneProtectionListener(ClassLoader slimefunLoader) {
+        public RedstoneProtectionListener(JavaPlugin plugin, ClassLoader slimefunLoader) {
+            this.plugin = plugin;
             this.slimefunLoader = slimefunLoader;
+            loadExistingPresses();
+
+            // Copper bulbs change their LIT block-state property inside Minecraft's
+            // neighbor-update logic. Physics-event cancellation alone does not
+            // reliably prevent that transition, so enforce the visual state directly.
+            plugin.getServer().getScheduler().runTaskTimer(
+                plugin, this::enforceUnlitState, 1L, 1L
+            );
         }
 
-        @EventHandler(priority = EventPriority.HIGHEST)
-        public void onBlockPhysics(BlockPhysicsEvent event) {
-            Block eventBlock = event.getBlock();
-            Block sourceBlock = event.getSourceBlock();
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        public void onBlockPlace(org.bukkit.event.block.BlockPlaceEvent event) {
+            if (event.getBlockPlaced().getType() != Material.WAXED_OXIDIZED_COPPER_BULB) {
+                return;
+            }
 
-            // Paper may report the block whose physics is being checked separately
-            // from the block that caused the update. Check both, then the six
-            // directly affected neighbors (including a redstone torch below the bulb).
-            if (isImplosivePress(eventBlock)
-                || isImplosivePress(sourceBlock)
-                || hasImplosivePressNeighbor(eventBlock)
-                || hasImplosivePressNeighbor(sourceBlock)) {
-                event.setCancelled(true);
+            Location location = event.getBlockPlaced().getLocation();
+            plugin.getServer().getScheduler().runTask(plugin, () -> {
+                if (isImplosivePress(location)) {
+                    presses.add(location.clone());
+                    enforceUnlit(location);
+                }
+            });
+        }
+
+        @EventHandler(priority = EventPriority.MONITOR)
+        public void onBlockBreak(org.bukkit.event.block.BlockBreakEvent event) {
+            presses.remove(event.getBlock().getLocation());
+        }
+
+        @EventHandler
+        public void onChunkLoad(org.bukkit.event.world.ChunkLoadEvent event) {
+            loadPressesInChunk(event.getChunk());
+        }
+
+        @EventHandler
+        public void onChunkUnload(org.bukkit.event.world.ChunkUnloadEvent event) {
+            int chunkX = event.getChunk().getX();
+            int chunkZ = event.getChunk().getZ();
+            presses.removeIf(location ->
+                location.getWorld().equals(event.getWorld())
+                    && (location.getBlockX() >> 4) == chunkX
+                    && (location.getBlockZ() >> 4) == chunkZ
+            );
+        }
+
+        private void loadExistingPresses() {
+            for (org.bukkit.World world : plugin.getServer().getWorlds()) {
+                loadPressesFromWorld(world, -1, -1);
             }
         }
 
-        private boolean hasImplosivePressNeighbor(Block block) {
-            for (org.bukkit.block.BlockFace face : org.bukkit.block.BlockFace.values()) {
-                if (face.getModY() == 0 && face.getModX() == 0 && face.getModZ() == 0) {
+        private void loadPressesInChunk(org.bukkit.Chunk chunk) {
+            loadPressesFromWorld(chunk.getWorld(), chunk.getX(), chunk.getZ());
+        }
+
+        private void loadPressesFromWorld(org.bukkit.World world, int chunkX, int chunkZ) {
+            try {
+                Class<?> blockStorageClass = Class.forName(
+                    "me.mrCookieSlime.Slimefun.api.BlockStorage", true, slimefunLoader
+                );
+                java.util.Map<?, ?> storage = (java.util.Map<?, ?>) blockStorageClass
+                    .getMethod("getRawStorage", org.bukkit.World.class)
+                    .invoke(null, world);
+                if (storage == null) {
+                    return;
+                }
+
+                for (java.util.Map.Entry<?, ?> entry : storage.entrySet()) {
+                    if (!(entry.getKey() instanceof Location location)) {
+                        continue;
+                    }
+                    if (chunkX >= 0 && ((location.getBlockX() >> 4) != chunkX
+                        || (location.getBlockZ() >> 4) != chunkZ)) {
+                        continue;
+                    }
+
+                    Object config = entry.getValue();
+                    String id = (String) config.getClass()
+                        .getMethod("getString", String.class).invoke(config, "id");
+                    if (MACHINE_ID.equals(id)) {
+                        presses.add(location.clone());
+                    }
+                }
+            } catch (ReflectiveOperationException exception) {
+                throw new IllegalStateException(
+                    "Could not load registered Implosive Press locations for redstone protection.",
+                    exception
+                );
+            }
+        }
+
+        private void enforceUnlitState() {
+            java.util.Iterator<Location> iterator = presses.iterator();
+            while (iterator.hasNext()) {
+                Location location = iterator.next();
+                if (location.getWorld() == null || !location.getWorld().isChunkLoaded(
+                    location.getBlockX() >> 4, location.getBlockZ() >> 4
+                )) {
+                    iterator.remove();
                     continue;
                 }
-                if (isImplosivePress(block.getRelative(face))) {
-                    return true;
+
+                Block block = location.getBlock();
+                if (block.getType() != Material.WAXED_OXIDIZED_COPPER_BULB
+                    || !isImplosivePress(location)) {
+                    iterator.remove();
+                    continue;
                 }
+
+                enforceUnlit(location);
             }
-            return false;
         }
 
-        private boolean isImplosivePress(Block block) {
-            if (block == null || block.getType() != Material.WAXED_OXIDIZED_COPPER_BULB) {
-                return false;
+        private void enforceUnlit(Location location) {
+            Block block = location.getBlock();
+            if (block.getType() != Material.WAXED_OXIDIZED_COPPER_BULB) {
+                return;
             }
 
+            BlockData data = block.getBlockData();
+            if (data instanceof CopperBulb bulb && bulb.isLit()) {
+                bulb.setLit(false);
+                block.setBlockData(bulb, false);
+            }
+        }
+
+        private boolean isImplosivePress(Location location) {
             try {
                 Class<?> blockStorageClass = Class.forName(
                     "me.mrCookieSlime.Slimefun.api.BlockStorage", true, slimefunLoader
                 );
                 Object config = blockStorageClass.getMethod("getLocationInfo", Location.class)
-                    .invoke(null, block.getLocation());
+                    .invoke(null, location);
                 if (config == null) {
                     return false;
                 }
@@ -270,7 +366,7 @@ public final class ImplosivePress {
                 return MACHINE_ID.equals(id);
             } catch (ReflectiveOperationException exception) {
                 throw new IllegalStateException(
-                    "Could not identify the Implosive Press at " + block.getLocation(),
+                    "Could not identify the Implosive Press at " + location,
                     exception
                 );
             }
