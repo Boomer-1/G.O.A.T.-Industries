@@ -97,9 +97,6 @@ public final class SlimefunContentRegistrar {
             new ItemStack[0]);
         slimefunItemClass.getMethod("register", addonClass).invoke(emcDiamondItem, addon);
 
-        Object trophyItem = itemConstructor.newInstance(itemGroup, trophyStack, nullRecipe, new ItemStack[0]);
-        slimefunItemClass.getMethod("register", addonClass).invoke(trophyItem, addon);
-
         UniversalPowerCore.register(plugin, loader, itemGroup, addon);
         GalacticSpaceball.register(plugin, loader, itemGroup, addon);
         DynamicCrystalFormer.register(plugin, loader, itemGroup, addon);
@@ -108,12 +105,49 @@ public final class SlimefunContentRegistrar {
         SuperSupremeCore.register(plugin, loader, itemGroup, addon);
         SuperDaxi.register(plugin, loader, itemGroup, addon);
 
+        ItemStack[] trophyRecipe = resolveRecipe(loader, new String[] {
+            "GOAT_SUPER_DAXI",
+            "IE_INFINITY_SINGULARITY_REACTOR",
+            "GOAT_SUPER_SUPREME_CORE",
+            "GOAT_IMPLOSIVE_COBBLESTONE",
+            "GOAT_NUCLEAR_UU_MATTER",
+            "GOAT_GALACTIC_SPACEBALL",
+            "GOAT_UNIVERSAL_POWER_CORE",
+            DynamicCrystalCatalog.OMEGA_SUPERCRYSTAL_ID,
+            "EMC_DIAMOND"
+        });
+        Object enhancedCraftingTable = recipeTypeClass.getField("ENHANCED_CRAFTING_TABLE").get(null);
+        Object trophyItem = itemConstructor.newInstance(
+            itemGroup, trophyStack, enhancedCraftingTable, trophyRecipe
+        );
+        slimefunItemClass.getMethod("register", addonClass).invoke(trophyItem, addon);
+
         plugin.getServer().getPluginManager().registerEvents(new DynamicCrystalPlacementListener(plugin), plugin);
         plugin.getServer().getPluginManager().registerEvents(new GoatTrophyListener(plugin), plugin);
         new EmcDiamondRewardManager(plugin, emcTech, emcDiamondStack).start();
 
         plugin.getLogger().info("[G.O.A.T. Industries] Registered EMC Diamond, G.O.A.T. Trophy, "
             + "Universal Power Core, Galactic Spaceball, Nuclear Compressor, Nuclear UU Matter, Implosive Press, Implosive Cobblestone, Super Supreme Core, Super Daxi, pyramid guide entries, Dynamic Crystal Former, and all six Dynamic Crystals.");
+    }
+
+    private static ItemStack[] resolveRecipe(ClassLoader loader, String[] itemIds)
+        throws ReflectiveOperationException {
+        Class<?> slimefunItemClass = Class.forName(SLIMEFUN_ITEM, true, loader);
+        java.lang.reflect.Method getById = slimefunItemClass.getMethod("getById", String.class);
+        java.lang.reflect.Method getItem = slimefunItemClass.getMethod("getItem");
+
+        ItemStack[] recipe = new ItemStack[itemIds.length];
+        for (int slot = 0; slot < itemIds.length; slot++) {
+            Object slimefunItem = getById.invoke(null, itemIds[slot]);
+            if (slimefunItem == null) {
+                throw new IllegalStateException(
+                    "Required G.O.A.T. Trophy ingredient is not registered: " + itemIds[slot]
+                );
+            }
+
+            recipe[slot] = ((ItemStack) getItem.invoke(slimefunItem)).clone();
+        }
+        return recipe;
     }
 
     private static ItemStack createSlimefunStack(ClassLoader loader, String id, Material material,
