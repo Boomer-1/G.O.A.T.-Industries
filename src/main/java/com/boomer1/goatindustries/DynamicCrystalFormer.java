@@ -36,6 +36,8 @@ public final class DynamicCrystalFormer {
     private static final String SLIMEFUN_ITEM_CLASS = "io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem";
     private static final String RECIPE_TYPE_CLASS = "io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType";
     private static final String NOT_PLACEABLE_CLASS = "io.github.thebusybiscuit.slimefun4.core.attributes.NotPlaceable";
+    private static final String UNPLACEABLE_BLOCK_CLASS =
+        "io.github.thebusybiscuit.slimefun4.implementation.items.blocks.UnplaceableBlock";
     private static final String A_CONTAINER_CLASS =
         "me.mrCookieSlime.Slimefun.Objects.SlimefunItem.abstractItems.AContainer";
     private static final String MACHINE_RECIPE_CLASS =
@@ -95,7 +97,7 @@ public final class DynamicCrystalFormer {
             new NamespacedKey(plugin, "dynamic_crystal_former"), machineStack
         );
 
-        Class<?> outputItemClass = createNotPlaceableItemClass(plugin.getClass().getClassLoader(), slimefunLoader);
+        Class<?> outputItemClass = Class.forName(UNPLACEABLE_BLOCK_CLASS, true, slimefunLoader);
         Constructor<?> outputItemConstructor = outputItemClass.getConstructor(
             itemGroupClass, itemStackClass, recipeTypeClass, ItemStack[].class
         );
@@ -216,30 +218,6 @@ public final class DynamicCrystalFormer {
             .intercept(MethodDelegation.to(new ExactRecipeMatcher()))
             .method(ElementMatchers.named("constructMenu").and(ElementMatchers.takesArguments(1)))
             .intercept(MethodDelegation.to(new MachineMenuConfigurator()))
-            .make()
-            .load(pluginLoader, ClassLoadingStrategy.Default.WRAPPER)
-            .getLoaded();
-    }
-
-    private static Class<?> createNotPlaceableItemClass(ClassLoader pluginLoader, ClassLoader slimefunLoader)
-        throws ReflectiveOperationException {
-
-        Class<?> slimefunItemClass = Class.forName(SLIMEFUN_ITEM_CLASS, true, slimefunLoader);
-        Class<?> itemGroupClass = Class.forName(ITEM_GROUP_CLASS, true, slimefunLoader);
-        Class<?> itemStackClass = Class.forName(ITEM_STACK_CLASS, true, slimefunLoader);
-        Class<?> recipeTypeClass = Class.forName(RECIPE_TYPE_CLASS, true, slimefunLoader);
-        Class<?> notPlaceableClass = Class.forName(NOT_PLACEABLE_CLASS, true, slimefunLoader);
-        Constructor<?> superConstructor = slimefunItemClass.getConstructor(
-            itemGroupClass, itemStackClass, recipeTypeClass, ItemStack[].class
-        );
-
-        return new ByteBuddy()
-            .subclass(slimefunItemClass, ConstructorStrategy.Default.NO_CONSTRUCTORS)
-            .implement(notPlaceableClass)
-            .name("com.boomer1.goatindustries.generated.NotPlaceableDynamicCrystal")
-            .defineConstructor(Visibility.PUBLIC)
-            .withParameters(itemGroupClass, itemStackClass, recipeTypeClass, ItemStack[].class)
-            .intercept(MethodCall.invoke(superConstructor).withAllArguments())
             .make()
             .load(pluginLoader, ClassLoadingStrategy.Default.WRAPPER)
             .getLoaded();
