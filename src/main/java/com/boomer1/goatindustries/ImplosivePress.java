@@ -224,9 +224,35 @@ public final class ImplosivePress {
 
         @EventHandler(priority = EventPriority.HIGHEST)
         public void onBlockPhysics(BlockPhysicsEvent event) {
-            Block block = event.getBlock();
-            if (block.getType() != Material.WAXED_OXIDIZED_COPPER_BULB) {
-                return;
+            Block eventBlock = event.getBlock();
+            Block sourceBlock = event.getSourceBlock();
+
+            // Paper may report the block whose physics is being checked separately
+            // from the block that caused the update. Check both, then the six
+            // directly affected neighbors (including a redstone torch below the bulb).
+            if (isImplosivePress(eventBlock)
+                || isImplosivePress(sourceBlock)
+                || hasImplosivePressNeighbor(eventBlock)
+                || hasImplosivePressNeighbor(sourceBlock)) {
+                event.setCancelled(true);
+            }
+        }
+
+        private boolean hasImplosivePressNeighbor(Block block) {
+            for (org.bukkit.block.BlockFace face : org.bukkit.block.BlockFace.values()) {
+                if (face.getModY() == 0 && face.getModX() == 0 && face.getModZ() == 0) {
+                    continue;
+                }
+                if (isImplosivePress(block.getRelative(face))) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private boolean isImplosivePress(Block block) {
+            if (block == null || block.getType() != Material.WAXED_OXIDIZED_COPPER_BULB) {
+                return false;
             }
 
             try {
@@ -236,21 +262,15 @@ public final class ImplosivePress {
                 Object config = blockStorageClass.getMethod("getLocationInfo", Location.class)
                     .invoke(null, block.getLocation());
                 if (config == null) {
-                    return;
+                    return false;
                 }
 
                 String id = (String) config.getClass().getMethod("getString", String.class)
                     .invoke(config, "id");
-                if (!MACHINE_ID.equals(id)) {
-                    return;
-                }
-
-                // Copper bulbs toggle when their neighbor updates due to redstone.
-                // Cancel the physics update on this registered machine block.
-                event.setCancelled(true);
+                return MACHINE_ID.equals(id);
             } catch (ReflectiveOperationException exception) {
                 throw new IllegalStateException(
-                    "Could not suppress redstone activation for the Implosive Press at " + block.getLocation(),
+                    "Could not identify the Implosive Press at " + block.getLocation(),
                     exception
                 );
             }
