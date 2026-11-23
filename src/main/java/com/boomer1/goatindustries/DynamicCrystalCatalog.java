@@ -48,6 +48,23 @@ public final class DynamicCrystalCatalog {
             "https://textures.minecraft.net/texture/2024f3c5efa8dca8197cd7847e3f4103f9ab7d2b8044fb1833738a3e0bcc85b8")
     );
 
+    public static final String DYNAMIC_CRYSTAL_LORE =
+        "Harvested power from the crystals of the world";
+    public static final String OMEGA_SUPERCRYSTAL_ID = "GOAT_OMEGA_SUPERCRYSTAL";
+    public static final String OMEGA_SUPERCRYSTAL_NAME = "Omega Supercrystal";
+    public static final String OMEGA_SUPERCRYSTAL_TEXTURE =
+        "https://textures.minecraft.net/texture/609d6a348a9923ebbb3423b196973d495b1aa5c056e4b351b120d36d8331a542";
+    public static final String OMEGA_SUPERCRYSTAL_LORE =
+        "The Omega crystal is the ultimate power driver.";
+    public static final List<String> OMEGA_SUPERCRYSTAL_INPUT_IDS = List.of(
+        "GOAT_DYNAMIC_COMMON_CRYSTAL",
+        "GOAT_DYNAMIC_UNIQUE_CRYSTAL",
+        "GOAT_DYNAMIC_UNCOMMON_CRYSTAL",
+        "GOAT_DYNAMIC_RARE_CRYSTAL",
+        "GOAT_DYNAMIC_EPIC_CRYSTAL",
+        "GOAT_DYNAMIC_MYTHICAL_CRYSTAL"
+    );
+
     public static final int ENERGY_CAPACITY = 16_000_000;
     public static final int ENERGY_PER_TICK = 500_000;
     public static final int PROCESSING_SECONDS = 30;
