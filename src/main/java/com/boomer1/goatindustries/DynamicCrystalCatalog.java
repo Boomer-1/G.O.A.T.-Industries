@@ -22,11 +22,11 @@ public final class DynamicCrystalCatalog {
     );
 
     public static final List<String> MACHINE_RECIPE_IDS = List.of(
-        "VOID_SMELTERY",
-        "QUARRY_3",
-        "VOID_SMELTERY",
+        "IE_VOID_SMELTERY",
+        "IE_QUARRY_3",
+        "IE_VOID_SMELTERY",
         "SUPREME_ELECTRIC_CORE_III",
-        "VOID_CAPACITOR",
+        "IE_VOID_CAPACITOR",
         "SUPREME_ELECTRIC_CORE_III",
         "CRY_EXALTED_BEACON",
         "LAB_LASER_DRILL",
