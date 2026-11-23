@@ -77,6 +77,7 @@ public final class GoatTrophyCraftListener implements Listener {
             PendingInteraction pending = new PendingInteraction(
                 dispenserBlock,
                 cloneContents(dispenser.getInventory()),
+                null,
                 playerName
             );
             pendingInteractions.put(playerId, pending);
@@ -108,9 +109,17 @@ public final class GoatTrophyCraftListener implements Listener {
                 return;
             }
 
+            ItemStack[] recipeInput = (ItemStack[]) invoke(event, "getInput");
+            PendingInteraction confirmedAttempt = new PendingInteraction(
+                pending.dispenserBlock(),
+                pending.before(),
+                cloneContents(recipeInput),
+                pending.playerName()
+            );
+
             UUID capturedPlayerId = playerId;
             plugin.getServer().getScheduler().runTask(plugin, () ->
-                verifyCompletedCraft(capturedPlayerId, pending));
+                verifyCompletedCraft(capturedPlayerId, confirmedAttempt));
         } catch (ReflectiveOperationException | RuntimeException exception) {
             plugin.getLogger().warning("[G.O.A.T. Industries] Could not inspect a G.O.A.T. Trophy craft event: "
                 + exception.getClass().getSimpleName());
@@ -137,13 +146,16 @@ public final class GoatTrophyCraftListener implements Listener {
             return;
         }
 
-        if (inventoryChanged(pending.before(), dispenser.getInventory())) {
+        if (recipeInputsWereConsumed(pending, dispenser.getInventory())) {
             notifier.notifyTrophyCrafted(pending.playerName(), playerId);
         }
     }
 
     private ItemStack[] cloneContents(Inventory inventory) {
-        ItemStack[] contents = inventory.getContents();
+        return cloneContents(inventory.getContents());
+    }
+
+    private ItemStack[] cloneContents(ItemStack[] contents) {
         ItemStack[] copy = new ItemStack[contents.length];
         for (int slot = 0; slot < contents.length; slot++) {
             copy[slot] = contents[slot] == null ? null : contents[slot].clone();
@@ -151,31 +163,36 @@ public final class GoatTrophyCraftListener implements Listener {
         return copy;
     }
 
-    private boolean inventoryChanged(ItemStack[] before, Inventory afterInventory) {
+    private boolean recipeInputsWereConsumed(PendingInteraction pending, Inventory afterInventory) {
+        ItemStack[] before = pending.before();
+        ItemStack[] expected = pending.expectedInput();
         ItemStack[] after = afterInventory.getContents();
-        if (before.length != after.length) {
-            return true;
+
+        if (expected == null || before.length != after.length) {
+            return false;
         }
 
-        for (int slot = 0; slot < before.length; slot++) {
-            ItemStack previous = before[slot];
-            ItemStack current = after[slot];
-            if (previous == null && current == null) {
+        for (int slot = 0; slot < expected.length; slot++) {
+            if (expected[slot] == null) {
                 continue;
             }
-            if (previous == null || current == null
-                || previous.getAmount() != current.getAmount()
-                || !previous.isSimilar(current)) {
-                return true;
+
+            ItemStack previous = before[slot];
+            ItemStack current = after[slot];
+            if (previous == null || (current != null
+                && previous.getAmount() == current.getAmount()
+                && previous.isSimilar(current))) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     private Object invoke(Object target, String methodName) throws ReflectiveOperationException {
         return target.getClass().getMethod(methodName).invoke(target);
     }
 
-    private record PendingInteraction(Block dispenserBlock, ItemStack[] before, String playerName) {
+    private record PendingInteraction(Block dispenserBlock, ItemStack[] before,
+                                      ItemStack[] expectedInput, String playerName) {
     }
 }
