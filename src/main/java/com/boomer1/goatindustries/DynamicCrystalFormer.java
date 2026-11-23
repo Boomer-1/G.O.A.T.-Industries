@@ -380,6 +380,17 @@ public final class DynamicCrystalFormer {
                         // prevent placing items into the output, but allow taking completed products.
                         if (arguments.length == 4) return false;
                         if (arguments.length == 5) {
+                            org.bukkit.event.inventory.InventoryClickEvent event =
+                                (org.bukkit.event.inventory.InventoryClickEvent) arguments[0];
+                            ItemStack clickedItem = event.getCurrentItem();
+
+                            // The orange output texture is only a visual placeholder, never a real output.
+                            // Do not let players remove it; allow taking an actual produced crystal.
+                            if (clickedItem == null || clickedItem.getType() == Material.AIR
+                                || clickedItem.isSimilar(outputTexture)) {
+                                return false;
+                            }
+
                             ItemStack cursor = (ItemStack) arguments[3];
                             return cursor == null || cursor.getType() == null || cursor.getType() == Material.AIR;
                         }
