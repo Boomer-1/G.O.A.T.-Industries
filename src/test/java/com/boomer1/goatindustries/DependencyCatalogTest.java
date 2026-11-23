@@ -21,7 +21,7 @@ class DependencyCatalogTest {
 
     @Test
     void catalogContainsAllCollectedRequirementsWithoutDuplicateIds() {
-        assertEquals(149, DependencyCatalog.items().size());
+        assertEquals(152, DependencyCatalog.items().size());
 
         Set<String> ids = new HashSet<>();
         DependencyCatalog.items().forEach(item -> assertTrue(ids.add(item.id()),
@@ -50,6 +50,9 @@ class DependencyCatalogTest {
         assertHasItem("InfinityExpansion2", "IE_INFINITY_SINGULARITY_REACTOR");
         assertHasItem("InfinityExpansion2", "IE_INFINITY_CAPACITOR");
         assertHasItem("InfinityExpansion2", "IE_INFINITY_WORKBENCH");
+        assertHasItem("InfinityExpansion2", "IE_VOID_SMELTERY");
+        assertHasItem("InfinityExpansion2", "IE_QUARRY_3");
+        assertHasItem("InfinityExpansion2", "IE_VOID_CAPACITOR");
     }
 
     @Test
