@@ -5,6 +5,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.logging.Filter;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -182,6 +185,18 @@ public final class SlimefunContentRegistrar {
     }
 
     private static Object createAddonProxy(Class<?> addonClass, JavaPlugin plugin) {
+        Logger logger = plugin.getLogger();
+        Filter existingFilter = logger.getFilter();
+        logger.setFilter(record -> {
+            String message = record.getMessage();
+            if (record.getLevel().intValue() == Level.INFO.intValue()
+                && message != null
+                && message.endsWith(": Item was registered during runtime.")) {
+                return false;
+            }
+            return existingFilter == null || existingFilter.isLoggable(record);
+        });
+
         InvocationHandler handler = (proxy, method, arguments) -> {
             return switch (method.getName()) {
                 case "getJavaPlugin" -> plugin;
