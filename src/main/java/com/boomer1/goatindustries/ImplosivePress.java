@@ -159,9 +159,6 @@ public final class ImplosivePress {
 
         registerItem.invoke(machine, addon);
 
-        plugin.getLogger().info(
-            "[G.O.A.T. Industries] Implosive Press registered with its 30-second compressed cobblestone recipe."
-        );
     }
 
     private static Class<?> createMachineClass(
