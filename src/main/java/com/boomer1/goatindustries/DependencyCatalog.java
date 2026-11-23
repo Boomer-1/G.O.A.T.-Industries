@@ -60,6 +60,9 @@ public final class DependencyCatalog {
         add(items, "InfinityExpansion2", "Infinity Singularity Reactor", "IE_INFINITY_SINGULARITY_REACTOR");
         add(items, "InfinityExpansion2", "Infinity Capacitor", "IE_INFINITY_CAPACITOR");
         add(items, "InfinityExpansion2", "Infinity Workbench", "IE_INFINITY_WORKBENCH");
+        add(items, "InfinityExpansion2", "Void Smeltery", "IE_VOID_SMELTERY");
+        add(items, "InfinityExpansion2", "Void Quarry", "IE_QUARRY_3");
+        add(items, "InfinityExpansion2", "Void Capacitor", "IE_VOID_CAPACITOR");
 
         add(items, "TranscEndence", "Daxi (S) - Strength", "DAXI_STRENGTH");
         add(items, "TranscEndence", "Daxi (A) - Absorption", "DAXI_ABSORPTION");
