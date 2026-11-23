@@ -134,7 +134,7 @@ public final class GalacticSpaceball {
         Object profile;
         try {
             profile = Bukkit.class.getMethod("createPlayerProfile", UUID.class, String.class)
-                .invoke(null, profileId, "GalacticSpaceball");
+                .invoke(null, profileId, "GoatSpaceball");
         } catch (NoSuchMethodException exception) {
             profile = Bukkit.class.getMethod("createPlayerProfile", UUID.class).invoke(null, profileId);
         }
