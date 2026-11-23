@@ -33,7 +33,7 @@ public final class SuperSupremeCore {
         "SUPREME_THORNIUM_ENERGIZED",
         "SUPREME_CORE_OF_COLOR",
         "SUPREME_CORE_OF_NATURE",
-        "SUPREME_CORE_OF_LIFE"
+        "SUPREME_CORE_OF_NATURE"
     };
 
     private static final String ITEM_GROUP_CLASS =
