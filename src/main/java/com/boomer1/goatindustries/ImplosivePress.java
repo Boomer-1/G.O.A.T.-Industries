@@ -112,10 +112,12 @@ public final class ImplosivePress {
         ItemStack compressedCobblestoneForGuide = resolveItem(
             slimefunLoader, COMPRESSED_COBBLESTONE_ID
         );
-        compressedCobblestoneForGuide.setAmount(64);
+        compressedCobblestoneForGuide.setAmount(1);
+        ItemStack[] implosiveCobblestoneGuideRecipe = new ItemStack[9];
+        implosiveCobblestoneGuideRecipe[4] = compressedCobblestoneForGuide;
         Object outputItem = outputConstructor.newInstance(
             resourceGroup, outputStack, implosivePressRecipeType,
-            new ItemStack[] {compressedCobblestoneForGuide}
+            implosiveCobblestoneGuideRecipe
         );
         Method registerItem = slimefunItemClass.getMethod("register", addonClass);
         registerItem.invoke(outputItem, addon);
