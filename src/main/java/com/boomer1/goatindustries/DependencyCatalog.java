@@ -79,6 +79,7 @@ public final class DependencyCatalog {
         add(items, "Supreme", "Supreme", "SUPREME_SUPREME");
         add(items, "Supreme", "Supreme Nugget", "SUPREME_SUPREME_NUGGET");
         add(items, "Supreme", "Thornium Ingot", "SUPREME_THORNIUM_INGOT");
+        add(items, "Supreme", "Thornium Energized", "SUPREME_THORNIUM_ENERGIZED");
         add(items, "Supreme", "Supreme Attribute Bomb", "SUPREME_ATTRIBUTE_BOMB");
         add(items, "Supreme", "Supreme Capacitor", "SUPREME_SUPREME_CAPACITOR");
         add(items, "Supreme", "Supreme Generator", "SUPREME_SUPREME_GENERATOR");
