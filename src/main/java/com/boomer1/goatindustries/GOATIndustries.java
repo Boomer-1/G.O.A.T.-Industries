@@ -10,6 +10,7 @@ public final class GOATIndustries extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        saveDefaultConfig();
         getLogger().info("[G.O.A.T. Industries] Scheduling startup dependency checks for the next server tick.");
 
         getServer().getScheduler().runTask(this, () -> {
