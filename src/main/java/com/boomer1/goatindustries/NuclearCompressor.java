@@ -100,6 +100,7 @@ public final class NuclearCompressor {
             ChatColor.GOLD + MACHINE_NAME,
             new String[] {
                 ChatColor.GRAY + "Lite Expansion has nothing on this.",
+                "",
                 ChatColor.GRAY + "Energy Consumption: 1,000,000 J/s",
                 ChatColor.GRAY + "Energy Buffer: 16,000,000 J",
                 ChatColor.DARK_RED + "Breaking this machine will cause all stored UU matter to be lost"
