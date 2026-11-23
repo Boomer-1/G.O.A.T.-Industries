@@ -113,8 +113,7 @@ public final class DynamicCrystalFormer {
                 Material.PLAYER_HEAD,
                 ChatColor.AQUA + output.displayName(),
                 new String[] {
-                    ChatColor.GRAY + "Created in the Dynamic Crystal Former",
-                    ChatColor.GRAY + "Processing Time: 30 seconds"
+                    ChatColor.GRAY + DynamicCrystalCatalog.DYNAMIC_CRYSTAL_LORE
                 }
             );
             setHeadTexture(outputStack, output.textureUrl(), slimefunLoader);
@@ -139,7 +138,52 @@ public final class DynamicCrystalFormer {
             );
         }
 
-        plugin.getLogger().info("[G.O.A.T. Industries] Dynamic Crystal Former registered with six exact 3x3 crystal recipes.");
+        // The Omega Supercrystal uses the six completed Dynamic Crystals in the specified 3x3 layout.
+        ItemStack omegaStack = createSlimefunStack(
+            slimefunLoader,
+            DynamicCrystalCatalog.OMEGA_SUPERCRYSTAL_ID,
+            Material.PLAYER_HEAD,
+            ChatColor.LIGHT_PURPLE + DynamicCrystalCatalog.OMEGA_SUPERCRYSTAL_NAME,
+            new String[] {
+                ChatColor.GRAY + DynamicCrystalCatalog.OMEGA_SUPERCRYSTAL_LORE
+            }
+        );
+        setHeadTexture(omegaStack, DynamicCrystalCatalog.OMEGA_SUPERCRYSTAL_TEXTURE, slimefunLoader);
+
+        ItemMeta omegaMeta = omegaStack.getItemMeta();
+        omegaMeta.getPersistentDataContainer().set(
+            new NamespacedKey(plugin, "dynamic_crystal"),
+            org.bukkit.persistence.PersistentDataType.BYTE,
+            (byte) 1
+        );
+        omegaStack.setItemMeta(omegaMeta);
+
+        ItemStack[] omegaInputs = new ItemStack[9];
+        int[] omegaIngredientPositions = {0, 1, 2, 6, 7, 8};
+        ItemStack[] omegaIngredients = resolveItems(
+            slimefunLoader,
+            DynamicCrystalCatalog.OMEGA_SUPERCRYSTAL_INPUT_IDS
+        );
+        for (int i = 0; i < omegaIngredientPositions.length; i++) {
+            omegaInputs[omegaIngredientPositions[i]] = omegaIngredients[i];
+        }
+        // The center row is intentionally empty; AIR entries preserve the exact 3x3 recipe shape.
+        for (int i = 3; i <= 5; i++) {
+            omegaInputs[i] = new ItemStack(Material.AIR);
+        }
+
+        Object omegaItem = outputItemConstructor.newInstance(
+            itemGroup, omegaStack, dynamicCrystalRecipeType, omegaInputs
+        );
+        registerItem.invoke(omegaItem, addon);
+        registerMachineRecipe.invoke(
+            machine,
+            DynamicCrystalCatalog.PROCESSING_SECONDS,
+            omegaInputs,
+            new ItemStack[] {omegaStack.clone()}
+        );
+
+        plugin.getLogger().info("[G.O.A.T. Industries] Dynamic Crystal Former registered with six exact 3x3 crystal recipes and the Omega Supercrystal recipe.");
     }
 
     private static Class<?> createMachineClass(
@@ -297,7 +341,14 @@ public final class DynamicCrystalFormer {
                     for (int i = 0; i < inputSlots.length; i++) {
                         ItemStack actual = (ItemStack) getItemInSlot.invoke(menu, inputSlots[i]);
                         ItemStack expected = requiredInputs[i];
-                        if (actual == null || expected == null
+                        if (expected == null || expected.getType() == Material.AIR) {
+                            if (actual != null && actual.getType() != Material.AIR) {
+                                matches = false;
+                                break;
+                            }
+                            continue;
+                        }
+                        if (actual == null || actual.getType() == Material.AIR
                             || actual.getAmount() < expected.getAmount()
                             || !sameSlimefunItem(actual, expected, getByItem, getId)) {
                             matches = false;
@@ -341,7 +392,10 @@ public final class DynamicCrystalFormer {
                     }
 
                     for (int i = 0; i < inputSlots.length; i++) {
-                        consumeItem.invoke(menu, inputSlots[i], requiredInputs[i].getAmount());
+                        ItemStack requiredInput = requiredInputs[i];
+                        if (requiredInput != null && requiredInput.getType() != Material.AIR) {
+                            consumeItem.invoke(menu, inputSlots[i], requiredInput.getAmount());
+                        }
                     }
                     return recipe;
                 }
