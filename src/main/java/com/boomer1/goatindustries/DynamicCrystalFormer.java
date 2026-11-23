@@ -167,7 +167,7 @@ public final class DynamicCrystalFormer {
             .method(ElementMatchers.named("getInputSlots").and(ElementMatchers.takesArguments(0)))
             .intercept(FixedValue.value(DynamicCrystalCatalog.inputSlots()))
             .method(ElementMatchers.named("getOutputSlots").and(ElementMatchers.takesArguments(0)))
-            .intercept(FixedValue.value(new int[] {DynamicCrystalCatalog.OUTPUT_SLOT}))
+            .intercept(FixedValue.value(new int[] {24, 25}))
             .method(ElementMatchers.named("findNextRecipe").and(ElementMatchers.takesArguments(1)))
             .intercept(MethodDelegation.to(new ExactRecipeMatcher()))
             .method(ElementMatchers.named("constructMenu").and(ElementMatchers.takesArguments(1)))
@@ -313,22 +313,30 @@ public final class DynamicCrystalFormer {
                         continue;
                     }
 
-                    ItemStack currentOutput = (ItemStack) getItemInSlot.invoke(menu, DynamicCrystalCatalog.OUTPUT_SLOT);
                     ItemStack result = outputs[0];
-                    boolean outputSlotHasPlaceholder = false;
+                    int[] outputSlots = {24, 25};
+                    int availableOutputCapacity = 0;
+                    Class<?> chestMenuUtils = Class.forName(
+                        "io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils", true, loader
+                    );
+                    ItemStack outputTexture = (ItemStack) chestMenuUtils
+                        .getMethod("getOutputSlotTexture").invoke(null);
+                    boolean outputCanFit = true;
 
-                    if (currentOutput != null) {
-                        Class<?> chestMenuUtils = Class.forName(
-                            "io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils", true, loader
-                        );
-                        ItemStack outputTexture = (ItemStack) chestMenuUtils
-                            .getMethod("getOutputSlotTexture").invoke(null);
-                        outputSlotHasPlaceholder = currentOutput.isSimilar(outputTexture);
+                    for (int outputSlot : outputSlots) {
+                        ItemStack currentOutput = (ItemStack) getItemInSlot.invoke(menu, outputSlot);
+                        if (currentOutput == null || currentOutput.getType() == org.bukkit.Material.AIR
+                            || currentOutput.isSimilar(outputTexture)) {
+                            availableOutputCapacity += result.getMaxStackSize();
+                        } else if (sameSlimefunItem(currentOutput, result, getByItem, getId)) {
+                            availableOutputCapacity += result.getMaxStackSize() - currentOutput.getAmount();
+                        } else {
+                            outputCanFit = false;
+                            break;
+                        }
                     }
 
-                    if (currentOutput != null && !outputSlotHasPlaceholder
-                        && (!sameSlimefunItem(currentOutput, result, getByItem, getId)
-                            || currentOutput.getAmount() + result.getAmount() > result.getMaxStackSize())) {
+                    if (!outputCanFit || availableOutputCapacity < result.getAmount()) {
                         continue;
                     }
 
@@ -422,7 +430,7 @@ public final class DynamicCrystalFormer {
                     boolean isInputSlot = contains(inputSlots, slot);
                     boolean isInputMarker = contains(inputMarkers, slot);
                     boolean isOutputMarker = contains(outputMarkers, slot);
-                    boolean isOpenOutput = slot == DynamicCrystalCatalog.OUTPUT_SLOT;
+                    boolean isOpenOutput = slot == 24 || slot == 25;
 
                     // Keep every ingredient and product slot genuinely empty and usable.
                     if (!isInputSlot && !isInputMarker && !isOutputMarker && !isOpenOutput
@@ -440,8 +448,11 @@ public final class DynamicCrystalFormer {
                 }
 
                 // Match Slimefun AContainer: block inserting items, allow collecting completed output.
-                preset.getClass().getMethod("addMenuClickHandler", int.class, clickHandlerClass)
-                    .invoke(preset, DynamicCrystalCatalog.OUTPUT_SLOT, outputHandler);
+                Method addMenuClickHandler = preset.getClass().getMethod(
+                    "addMenuClickHandler", int.class, clickHandlerClass
+                );
+                addMenuClickHandler.invoke(preset, 24, outputHandler);
+                addMenuClickHandler.invoke(preset, 25, outputHandler);
 
                 ItemStack progress = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
                 ItemMeta progressMeta = progress.getItemMeta();
