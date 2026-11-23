@@ -101,6 +101,7 @@ public final class SlimefunContentRegistrar {
         slimefunItemClass.getMethod("register", addonClass).invoke(trophyItem, addon);
 
         UniversalPowerCore.register(plugin, loader, itemGroup, addon);
+        GalacticSpaceball.register(plugin, loader, itemGroup, addon);
         DynamicCrystalFormer.register(plugin, loader, itemGroup, addon);
 
         plugin.getServer().getPluginManager().registerEvents(new DynamicCrystalPlacementListener(plugin), plugin);
@@ -108,7 +109,7 @@ public final class SlimefunContentRegistrar {
         new EmcDiamondRewardManager(plugin, emcTech, emcDiamondStack).start();
 
         plugin.getLogger().info("[G.O.A.T. Industries] Registered EMC Diamond, G.O.A.T. Trophy, "
-            + "Universal Power Core, pyramid guide entries, Dynamic Crystal Former, and all six Dynamic Crystals.");
+            + "Universal Power Core, Galactic Spaceball, pyramid guide entries, Dynamic Crystal Former, and all six Dynamic Crystals.");
     }
 
     private static ItemStack createSlimefunStack(ClassLoader loader, String id, Material material,
