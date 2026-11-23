@@ -3,6 +3,7 @@ package com.boomer1.goatindustries;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -13,6 +14,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class SuperSupremeCore {
@@ -81,8 +83,14 @@ public final class SuperSupremeCore {
         );
         setHeadTexture(outputStack, slimefunLoader);
 
+        Plugin supreme = plugin.getServer().getPluginManager().getPlugin("Supreme");
+        if (supreme == null || !supreme.isEnabled()) {
+            throw new IllegalStateException("The Supreme addon is not enabled.");
+        }
+        ClassLoader supremeLoader = supreme.getClass().getClassLoader();
+
         ItemStack[] recipe = resolveRecipe(slimefunLoader);
-        Object multiblockRecipeType = getMultiblockMagicalRecipeType(slimefunLoader);
+        Object multiblockRecipeType = getMultiblockMagicalRecipeType(supremeLoader);
 
         Constructor<?> outputConstructor = unplaceableBlockClass.getConstructor(
             itemGroupClass, itemStackClass, recipeTypeClass, ItemStack[].class
@@ -95,7 +103,7 @@ public final class SuperSupremeCore {
         registerItem.invoke(outputItem, addon);
 
         registerElectricMagicalRecipes(
-            slimefunLoader, slimefunItemClass, outputStack, recipe
+            slimefunLoader, supremeLoader, slimefunItemClass, outputStack, recipe
         );
 
         plugin.getLogger().info(
@@ -114,6 +122,7 @@ public final class SuperSupremeCore {
 
     private static void registerElectricMagicalRecipes(
         ClassLoader slimefunLoader,
+        ClassLoader supremeLoader,
         Class<?> slimefunItemClass,
         ItemStack outputStack,
         ItemStack[] recipe
@@ -121,7 +130,7 @@ public final class SuperSupremeCore {
 
         Method getById = slimefunItemClass.getMethod("getById", String.class);
         Class<?> abstractRecipeClass = Class.forName(
-            ABSTRACT_ITEM_RECIPE_CLASS, true, slimefunLoader
+            ABSTRACT_ITEM_RECIPE_CLASS, true, supremeLoader
         );
         Constructor<?> recipeConstructor = abstractRecipeClass.getConstructor(
             ItemStack[].class, ItemStack[].class
@@ -205,7 +214,12 @@ public final class SuperSupremeCore {
         }
 
         Object textures = profileClass.getMethod("getTextures").invoke(profile);
-        URL skinUrl = new URL(TEXTURE_URL);
+        URL skinUrl;
+        try {
+            skinUrl = new URL(TEXTURE_URL);
+        } catch (MalformedURLException exception) {
+            throw new IllegalStateException("The Super Supreme Core texture URL is invalid.", exception);
+        }
         texturesClass.getMethod("setSkin", URL.class).invoke(textures, skinUrl);
         profileClass.getMethod("setTextures", texturesClass).invoke(profile, textures);
 
