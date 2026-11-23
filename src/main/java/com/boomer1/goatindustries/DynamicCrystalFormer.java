@@ -79,7 +79,7 @@ public final class DynamicCrystalFormer {
         progressMeta.setDisplayName(ChatColor.YELLOW + "Processing");
         progressBar.setItemMeta(progressMeta);
 
-        Class<?> machineClass = createMachineClass(plugin, plugin.getClass().getClassLoader(), slimefunLoader, progressBar);
+        Class<?> machineClass = createMachineClass(plugin.getClass().getClassLoader(), slimefunLoader, progressBar);
         Constructor<?> machineConstructor = machineClass.getConstructor(
             itemGroupClass, itemStackClass, recipeTypeClass, ItemStack[].class
         );
@@ -143,7 +143,7 @@ public final class DynamicCrystalFormer {
     }
 
     private static Class<?> createMachineClass(
-        JavaPlugin plugin, ClassLoader pluginLoader, ClassLoader slimefunLoader, ItemStack progressBar
+        ClassLoader pluginLoader, ClassLoader slimefunLoader, ItemStack progressBar
     ) throws ReflectiveOperationException {
 
         Class<?> aContainerClass = Class.forName(A_CONTAINER_CLASS, true, slimefunLoader);
@@ -171,7 +171,7 @@ public final class DynamicCrystalFormer {
             .method(ElementMatchers.named("findNextRecipe").and(ElementMatchers.takesArguments(1)))
             .intercept(MethodDelegation.to(new ExactRecipeMatcher()))
             .method(ElementMatchers.named("constructMenu").and(ElementMatchers.takesArguments(1)))
-            .intercept(MethodDelegation.to(new MachineMenuConfigurator(plugin)))
+            .intercept(MethodDelegation.to(new MachineMenuConfigurator()))
             .make()
             .load(pluginLoader, ClassLoadingStrategy.Default.WRAPPER)
             .getLoaded();
@@ -335,13 +335,6 @@ public final class DynamicCrystalFormer {
                     for (int i = 0; i < inputSlots.length; i++) {
                         consumeItem.invoke(menu, inputSlots[i], requiredInputs[i].getAmount());
                     }
-
-                    // The orange pane is only a visual placeholder. Clear it as soon as
-                    // processing begins so Slimefun can place the finished crystal here.
-                    Method replaceExistingItem = blockMenuClass.getMethod(
-                        "replaceExistingItem", int.class, ItemStack.class
-                    );
-                    replaceExistingItem.invoke(menu, DynamicCrystalCatalog.OUTPUT_SLOT, new Object[] {null});
                     return recipe;
                 }
                 return null;
@@ -364,10 +357,13 @@ public final class DynamicCrystalFormer {
 
     public static final class MachineMenuConfigurator {
 
-        private final JavaPlugin plugin;
-
-        public MachineMenuConfigurator(JavaPlugin plugin) {
-            this.plugin = plugin;
+        private static boolean contains(int[] slots, int target) {
+            for (int slot : slots) {
+                if (slot == target) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public void configure(@This Object machine, @Argument(0) Object preset) {
@@ -378,6 +374,7 @@ public final class DynamicCrystalFormer {
                 Class<?> advancedHandlerClass = Class.forName(ADVANCED_MENU_CLICK_HANDLER_CLASS, true, loader);
 
                 ItemStack background = (ItemStack) chestMenuUtils.getMethod("getBackground").invoke(null);
+                ItemStack inputTexture = (ItemStack) chestMenuUtils.getMethod("getInputSlotTexture").invoke(null);
                 ItemStack outputTexture = (ItemStack) chestMenuUtils.getMethod("getOutputSlotTexture").invoke(null);
                 Object emptyClickHandler = chestMenuUtils.getMethod("getEmptyClickHandler").invoke(null);
 
@@ -398,25 +395,8 @@ public final class DynamicCrystalFormer {
                                 (org.bukkit.event.inventory.InventoryClickEvent) arguments[0];
                             ItemStack clickedItem = event.getCurrentItem();
 
-                            // The orange output texture is only a visual placeholder, never a real output.
-                            // Do not let players remove it; allow taking an actual produced crystal.
-                            if (clickedItem == null || clickedItem.getType() == Material.AIR
-                                || clickedItem.isSimilar(outputTexture)) {
-                                return false;
-                            }
-
                             ItemStack cursor = (ItemStack) arguments[3];
-                            boolean canTake = cursor == null || cursor.getType() == null || cursor.getType() == Material.AIR;
-                            if (canTake && event.getRawSlot() == DynamicCrystalCatalog.OUTPUT_SLOT) {
-                                Bukkit.getScheduler().runTask(plugin, () -> {
-                                    org.bukkit.inventory.Inventory top = event.getView().getTopInventory();
-                                    ItemStack current = top.getItem(DynamicCrystalCatalog.OUTPUT_SLOT);
-                                    if (current == null || current.getType() == Material.AIR) {
-                                        top.setItem(DynamicCrystalCatalog.OUTPUT_SLOT, outputTexture.clone());
-                                    }
-                                });
-                            }
-                            return canTake;
+                            return cursor == null || cursor.getType() == null || cursor.getType() == Material.AIR;
                         }
                         return false;
                     }
@@ -427,25 +407,32 @@ public final class DynamicCrystalFormer {
                 );
 
                 int[] inputSlots = DynamicCrystalCatalog.inputSlots();
-                for (int slot = 0; slot < 54; slot++) {
-                    boolean isInputSlot = false;
-                    for (int inputSlot : inputSlots) {
-                        if (slot == inputSlot) {
-                            isInputSlot = true;
-                            break;
-                        }
-                    }
+                int[] inputMarkers = {9, 13, 18, 27, 31};
+                int[] outputMarkers = {14, 15, 16, 17, 23, 26, 32, 33, 34, 35};
 
-                    // Leave all nine ingredient slots completely unoccupied.
-                    if (!isInputSlot && slot != DynamicCrystalCatalog.OUTPUT_SLOT
-                        && slot != DynamicCrystalCatalog.PROGRESS_SLOT && slot != 14) {
+                for (int slot = 0; slot < 54; slot++) {
+                    boolean isInputSlot = contains(inputSlots, slot);
+                    boolean isInputMarker = contains(inputMarkers, slot);
+                    boolean isOutputMarker = contains(outputMarkers, slot);
+                    boolean isOpenOutput = slot == DynamicCrystalCatalog.OUTPUT_SLOT;
+
+                    // Keep every ingredient and product slot genuinely empty and usable.
+                    if (!isInputSlot && !isInputMarker && !isOutputMarker && !isOpenOutput
+                        && slot != DynamicCrystalCatalog.PROGRESS_SLOT && slot != 4) {
                         addItem.invoke(preset, slot, background.clone(), emptyClickHandler);
                     }
                 }
 
-                // Use AContainer's output-slot click semantics so the orange marker cannot be picked up
-                // and players can only take a completed output, never place items into this slot.
-                addItem.invoke(preset, DynamicCrystalCatalog.OUTPUT_SLOT, outputTexture.clone(), outputHandler);
+                // Colored panes identify the input/output areas, but never occupy usable slots.
+                for (int slot : inputMarkers) {
+                    addItem.invoke(preset, slot, inputTexture.clone(), emptyClickHandler);
+                }
+                for (int slot : outputMarkers) {
+                    addItem.invoke(preset, slot, outputTexture.clone(), emptyClickHandler);
+                }
+
+                // Match Slimefun AContainer: block inserting items, allow collecting completed output.
+                addItem.invoke(preset, DynamicCrystalCatalog.OUTPUT_SLOT, background.clone(), outputHandler);
 
                 ItemStack progress = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
                 ItemMeta progressMeta = progress.getItemMeta();
@@ -457,7 +444,7 @@ public final class DynamicCrystalFormer {
                 ItemMeta arrowMeta = arrow.getItemMeta();
                 arrowMeta.setDisplayName(ChatColor.GOLD + "Output");
                 arrow.setItemMeta(arrowMeta);
-                addItem.invoke(preset, 14, arrow, emptyClickHandler);
+                addItem.invoke(preset, 4, arrow, emptyClickHandler);
             } catch (ReflectiveOperationException exception) {
                 throw new IllegalStateException("Could not create the Dynamic Crystal Former menu.", exception);
             }
