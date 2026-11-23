@@ -55,9 +55,6 @@ public final class DependencyCatalog {
     private static List<ItemRequirement> buildItems() {
         List<ItemRequirement> items = new ArrayList<>();
 
-        add(items, "InfinityExpansion2", "Infinity Singularity Reactor", "IE_INFINITY_SINGULARITY_REACTOR");
-        add(items, "InfinityExpansion2", "Infinity Capacitor", "IE_INFINITY_CAPACITOR");
-        add(items, "InfinityExpansion2", "Infinity Workbench", "IE_INFINITY_WORKBENCH");
         add(items, "InfinityExpansion2", "Infinity Singularity Constructor", "IE_SINGULARITY_CONSTRUCTOR_2");
         add(items, "InfinityExpansion2", "Singularity Constructor", "IE_SINGULARITY_CONSTRUCTOR");
         add(items, "InfinityExpansion2", "Void Smeltery", "VOID_SMELTERY");
