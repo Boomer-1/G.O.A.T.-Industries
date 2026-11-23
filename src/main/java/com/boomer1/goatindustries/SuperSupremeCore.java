@@ -112,10 +112,10 @@ public final class SuperSupremeCore {
         );
     }
 
-    private static Object getMultiblockMagicalRecipeType(ClassLoader slimefunLoader)
+    private static Object getMultiblockMagicalRecipeType(ClassLoader supremeLoader)
         throws ReflectiveOperationException {
         Class<?> machineClass = Class.forName(
-            MULTIBLOCK_MAGICAL_FABRICATOR_CLASS, true, slimefunLoader
+            MULTIBLOCK_MAGICAL_FABRICATOR_CLASS, true, supremeLoader
         );
         return machineClass.getMethod("getMachine").invoke(null);
     }
