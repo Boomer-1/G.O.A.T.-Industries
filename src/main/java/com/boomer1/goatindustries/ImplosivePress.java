@@ -76,7 +76,11 @@ public final class ImplosivePress {
             Material.WARPED_WART_BLOCK,
             ChatColor.GOLD + MACHINE_NAME,
             new String[] {
-                ChatColor.GRAY + "There is absolutely no way to make anything more compact"
+                ChatColor.GRAY + "There is absolutely no way to make anything more compact",
+                "",
+                ChatColor.DARK_PURPLE + "End-Game Machine",
+                ChatColor.GRAY + "Energy Consumption: 1,000,000 J/s",
+                ChatColor.GRAY + "Energy Buffer: 16,000,000 J"
             }
         );
 
