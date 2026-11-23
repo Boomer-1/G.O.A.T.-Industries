@@ -344,7 +344,16 @@ public final class DynamicCrystalFormer {
                 ItemStack background = (ItemStack) chestMenuUtils.getMethod("getBackground").invoke(null);
                 ItemStack inputTexture = (ItemStack) chestMenuUtils.getMethod("getInputSlotTexture").invoke(null);
                 ItemStack outputTexture = (ItemStack) chestMenuUtils.getMethod("getOutputSlotTexture").invoke(null);
-                Object inputHandler = chestMenuUtils.getMethod("getEmptyClickHandler").invoke(null);
+                Object inputHandler = Proxy.newProxyInstance(
+                    clickHandlerClass.getClassLoader(),
+                    new Class<?>[] {clickHandlerClass},
+                    (proxy, method, arguments) -> {
+                        if (method.getName().equals("toString")) return "DynamicCrystalFormerInput";
+                        if (method.getName().equals("hashCode")) return System.identityHashCode(proxy);
+                        if (method.getName().equals("equals")) return proxy == arguments[0];
+                        return method.getName().equals("onClick");
+                    }
+                );
                 Object outputHandler = preset.getClass()
                     .getMethod("getMenuClickHandler", int.class)
                     .invoke(preset, DynamicCrystalCatalog.OUTPUT_SLOT);
