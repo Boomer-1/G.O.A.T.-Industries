@@ -119,6 +119,14 @@ public final class DynamicCrystalFormer {
             );
             setHeadTexture(outputStack, output.textureUrl(), slimefunLoader);
 
+            ItemMeta outputMeta = outputStack.getItemMeta();
+            outputMeta.getPersistentDataContainer().set(
+                new NamespacedKey(plugin, "dynamic_crystal"),
+                org.bukkit.persistence.PersistentDataType.BYTE,
+                (byte) 1
+            );
+            outputStack.setItemMeta(outputMeta);
+
             ItemStack[] inputs = resolveItems(slimefunLoader, DynamicCrystalCatalog.inputIds(output.rarity()));
             Object outputItem = outputItemConstructor.newInstance(itemGroup, outputStack, dynamicCrystalRecipeType, inputs);
             registerItem.invoke(outputItem, addon);
