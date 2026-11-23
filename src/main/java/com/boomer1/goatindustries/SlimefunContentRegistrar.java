@@ -141,8 +141,6 @@ public final class SlimefunContentRegistrar {
         plugin.getServer().getPluginManager().registerEvents(new GoatTrophyListener(plugin), plugin);
         new EmcDiamondRewardManager(plugin, emcTech, emcDiamondStack).start();
 
-        plugin.getLogger().info("[G.O.A.T. Industries] Registered EMC Diamond, G.O.A.T. Trophy, "
-            + "Universal Power Core, Galactic Spaceball, Nuclear Compressor, Nuclear UU Matter, Implosive Press, Implosive Cobblestone, Super Supreme Core, Super Daxi, pyramid guide entries, Dynamic Crystal Former, and all six Dynamic Crystals.");
     }
 
     private static Object createSubGroup(JavaPlugin plugin, Constructor<?> constructor, Object parent,
