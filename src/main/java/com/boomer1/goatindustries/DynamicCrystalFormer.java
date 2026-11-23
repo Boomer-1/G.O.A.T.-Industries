@@ -125,7 +125,7 @@ public final class DynamicCrystalFormer {
 
             registerMachineRecipe.invoke(
                 machine,
-                DynamicCrystalCatalog.PROCESSING_TICKS,
+                DynamicCrystalCatalog.PROCESSING_SECONDS,
                 inputs,
                 new ItemStack[] {outputStack.clone()}
             );
