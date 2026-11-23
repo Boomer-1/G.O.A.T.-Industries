@@ -140,7 +140,13 @@ public final class GalacticSpaceball {
         }
 
         Object textures = profileClass.getMethod("getTextures").invoke(profile);
-        texturesClass.getMethod("setSkin", URL.class).invoke(textures, new URL(TEXTURE_URL));
+        URL skinUrl;
+        try {
+            skinUrl = new URL(TEXTURE_URL);
+        } catch (java.net.MalformedURLException exception) {
+            throw new IllegalStateException("The Galactic Spaceball texture URL is invalid.", exception);
+        }
+        texturesClass.getMethod("setSkin", URL.class).invoke(textures, skinUrl);
         profileClass.getMethod("setTextures", texturesClass).invoke(profile, textures);
 
         Method applyProfile;
