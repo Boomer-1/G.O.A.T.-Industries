@@ -21,7 +21,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockRedstoneEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -223,7 +223,7 @@ public final class ImplosivePress {
         }
 
         @EventHandler(priority = EventPriority.HIGHEST)
-        public void onBlockRedstone(BlockRedstoneEvent event) {
+        public void onBlockPhysics(BlockPhysicsEvent event) {
             Block block = event.getBlock();
             if (block.getType() != Material.WAXED_OXIDIZED_COPPER_BULB) {
                 return;
@@ -235,22 +235,19 @@ public final class ImplosivePress {
                 );
                 Object config = blockStorageClass.getMethod("getLocationInfo", Location.class)
                     .invoke(null, block.getLocation());
+                if (config == null) {
+                    return;
+                }
+
                 String id = (String) config.getClass().getMethod("getString", String.class)
                     .invoke(config, "id");
-
                 if (!MACHINE_ID.equals(id)) {
                     return;
                 }
 
-                // Prevent the copper bulb from receiving a redstone power transition.
-                event.setNewCurrent(event.getOldCurrent());
-
-                BlockData data = block.getBlockData();
-                if (data instanceof CopperBulb copperBulb) {
-                    copperBulb.setPowered(false);
-                    copperBulb.setLit(false);
-                    block.setBlockData(copperBulb, false);
-                }
+                // Copper bulbs toggle when their neighbor updates due to redstone.
+                // Cancel the physics update on this registered machine block.
+                event.setCancelled(true);
             } catch (ReflectiveOperationException exception) {
                 throw new IllegalStateException(
                     "Could not suppress redstone activation for the Implosive Press at " + block.getLocation(),
