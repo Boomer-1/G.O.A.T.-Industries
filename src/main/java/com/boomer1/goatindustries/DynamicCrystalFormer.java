@@ -16,7 +16,6 @@ import net.bytebuddy.dynamic.scaffold.subclass.ConstructorStrategy;
 import net.bytebuddy.implementation.FixedValue;
 import net.bytebuddy.implementation.MethodCall;
 import net.bytebuddy.implementation.MethodDelegation;
-import net.bytebuddy.implementation.SuperMethodCall;
 import net.bytebuddy.implementation.bind.annotation.Argument;
 import net.bytebuddy.implementation.bind.annotation.RuntimeType;
 import net.bytebuddy.implementation.bind.annotation.This;
@@ -44,6 +43,8 @@ public final class DynamicCrystalFormer {
     private static final String CHEST_MENU_UTILS_CLASS = "io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils";
     private static final String MENU_CLICK_HANDLER_CLASS =
         "me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu$MenuClickHandler";
+    private static final String ADVANCED_MENU_CLICK_HANDLER_CLASS =
+        "me.mrCookieSlime.CSCoreLibPlugin.general.Inventory.ChestMenu$AdvancedMenuClickHandler";
 
     private DynamicCrystalFormer() {
     }
@@ -161,7 +162,7 @@ public final class DynamicCrystalFormer {
             .method(ElementMatchers.named("findNextRecipe").and(ElementMatchers.takesArguments(1)))
             .intercept(MethodDelegation.to(new ExactRecipeMatcher()))
             .method(ElementMatchers.named("constructMenu").and(ElementMatchers.takesArguments(1)))
-            .intercept(SuperMethodCall.INSTANCE.andThen(MethodDelegation.to(new MachineMenuConfigurator())))
+            .intercept(MethodDelegation.to(new MachineMenuConfigurator()))
             .make()
             .load(pluginLoader, ClassLoadingStrategy.Default.WRAPPER)
             .getLoaded();
@@ -341,20 +342,28 @@ public final class DynamicCrystalFormer {
                 ClassLoader loader = machine.getClass().getClassLoader();
                 Class<?> chestMenuUtils = Class.forName(CHEST_MENU_UTILS_CLASS, true, loader);
                 Class<?> clickHandlerClass = Class.forName(MENU_CLICK_HANDLER_CLASS, true, loader);
+                Class<?> advancedHandlerClass = Class.forName(ADVANCED_MENU_CLICK_HANDLER_CLASS, true, loader);
 
                 ItemStack background = (ItemStack) chestMenuUtils.getMethod("getBackground").invoke(null);
                 ItemStack outputTexture = (ItemStack) chestMenuUtils.getMethod("getOutputSlotTexture").invoke(null);
-                Object outputHandler = preset.getClass()
-                    .getMethod("getMenuClickHandler", int.class)
-                    .invoke(preset, DynamicCrystalCatalog.OUTPUT_SLOT);
+                Object emptyClickHandler = chestMenuUtils.getMethod("getEmptyClickHandler").invoke(null);
 
-                Object denyHandler = Proxy.newProxyInstance(
-                    clickHandlerClass.getClassLoader(),
-                    new Class<?>[] {clickHandlerClass},
+                Object outputHandler = Proxy.newProxyInstance(
+                    advancedHandlerClass.getClassLoader(),
+                    new Class<?>[] {advancedHandlerClass},
                     (proxy, method, arguments) -> {
-                        if (method.getName().equals("toString")) return "DynamicCrystalFormerMenuDecoration";
+                        if (method.getName().equals("toString")) return "DynamicCrystalFormerOutputHandler";
                         if (method.getName().equals("hashCode")) return System.identityHashCode(proxy);
                         if (method.getName().equals("equals")) return proxy == arguments[0];
+                        if (!method.getName().equals("onClick")) return null;
+
+                        // Match AContainer's normal output-slot behavior:
+                        // prevent placing items into the output, but allow taking completed products.
+                        if (arguments.length == 4) return false;
+                        if (arguments.length == 5) {
+                            ItemStack cursor = (ItemStack) arguments[3];
+                            return cursor == null || cursor.getType() == null || cursor.getType() == Material.AIR;
+                        }
                         return false;
                     }
                 );
@@ -362,6 +371,7 @@ public final class DynamicCrystalFormer {
                 Method addItem = preset.getClass().getMethod(
                     "addItem", int.class, ItemStack.class, clickHandlerClass
                 );
+
                 int[] inputSlots = DynamicCrystalCatalog.inputSlots();
                 for (int slot = 0; slot < 54; slot++) {
                     boolean isInputSlot = false;
@@ -372,27 +382,30 @@ public final class DynamicCrystalFormer {
                         }
                     }
 
-                    // Keep ingredient slots empty so players can insert items without picking up a glass placeholder.
-                    if (!isInputSlot) {
-                        addItem.invoke(preset, slot, background.clone(), denyHandler);
+                    // Leave all nine ingredient slots completely unoccupied.
+                    if (!isInputSlot && slot != DynamicCrystalCatalog.OUTPUT_SLOT
+                        && slot != DynamicCrystalCatalog.PROGRESS_SLOT && slot != 14) {
+                        addItem.invoke(preset, slot, background.clone(), emptyClickHandler);
                     }
                 }
+
+                // Use AContainer's output-slot click semantics so the orange marker cannot be picked up
+                // and players can only take a completed output, never place items into this slot.
                 addItem.invoke(preset, DynamicCrystalCatalog.OUTPUT_SLOT, outputTexture.clone(), outputHandler);
 
                 ItemStack progress = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
                 ItemMeta progressMeta = progress.getItemMeta();
                 progressMeta.setDisplayName(" ");
                 progress.setItemMeta(progressMeta);
-                addItem.invoke(preset, DynamicCrystalCatalog.PROGRESS_SLOT, progress, denyHandler);
+                addItem.invoke(preset, DynamicCrystalCatalog.PROGRESS_SLOT, progress, emptyClickHandler);
 
                 ItemStack arrow = new ItemStack(Material.ARROW);
                 ItemMeta arrowMeta = arrow.getItemMeta();
                 arrowMeta.setDisplayName(ChatColor.GOLD + "Output");
                 arrow.setItemMeta(arrowMeta);
-                addItem.invoke(preset, 14, arrow, denyHandler);
+                addItem.invoke(preset, 14, arrow, emptyClickHandler);
             } catch (ReflectiveOperationException exception) {
                 throw new IllegalStateException("Could not create the Dynamic Crystal Former menu.", exception);
             }
         }
-    }
-}
+    }}
