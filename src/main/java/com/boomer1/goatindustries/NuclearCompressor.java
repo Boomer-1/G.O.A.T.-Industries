@@ -99,6 +99,9 @@ public final class NuclearCompressor {
         @SuppressWarnings({"unchecked", "rawtypes"})
         Object veryDeadly = Enum.valueOf((Class<? extends Enum>) radioactivityClass.asSubclass(Enum.class), "VERY_DEADLY");
         Class<?> radioactiveItemClass = Class.forName(RADIOACTIVE_ITEM_CLASS, true, slimefunLoader);
+        Constructor<?> radioactiveConstructor = radioactiveItemClass.getConstructor(
+            itemGroupClass, radioactivityClass, itemStackClass, recipeTypeClass, ItemStack[].class
+        );
         Constructor<?> recipeTypeConstructor = recipeTypeClass.getConstructor(
             org.bukkit.NamespacedKey.class, ItemStack.class, java.util.function.BiConsumer.class,
             String[].class
