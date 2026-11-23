@@ -51,7 +51,7 @@ public final class DynamicCrystalCatalog {
     public static final int ENERGY_CAPACITY = 16_000_000;
     public static final int ENERGY_PER_TICK = 500_000;
     public static final int PROCESSING_SECONDS = 30;
-    public static final int OUTPUT_SLOT = 16;
+    public static final int OUTPUT_SLOT = 25;
     public static final int PROGRESS_SLOT = 22;
 
     private static final int[] INPUT_SLOTS = {10, 11, 12, 19, 20, 21, 28, 29, 30};
