@@ -59,7 +59,7 @@ public final class ImplosivePress {
     private ImplosivePress() {
     }
 
-    public static void register(JavaPlugin plugin, ClassLoader slimefunLoader, Object itemGroup, Object addon)
+    public static void register(JavaPlugin plugin, ClassLoader slimefunLoader, Object machineGroup, Object resourceGroup, Object addon)
         throws ReflectiveOperationException {
 
         Class<?> itemGroupClass = Class.forName(ITEM_GROUP_CLASS, true, slimefunLoader);
@@ -100,7 +100,7 @@ public final class ImplosivePress {
         );
         Object nullRecipe = recipeTypeClass.getField("NULL").get(null);
         Object outputItem = outputConstructor.newInstance(
-            itemGroup, outputStack, nullRecipe, new ItemStack[0]
+            resourceGroup, outputStack, nullRecipe, new ItemStack[0]
         );
         Method registerItem = slimefunItemClass.getMethod("register", addonClass);
         registerItem.invoke(outputItem, addon);
@@ -120,7 +120,7 @@ public final class ImplosivePress {
             itemGroupClass, itemStackClass, recipeTypeClass, ItemStack[].class
         );
         Object machine = machineConstructor.newInstance(
-            itemGroup, machineStack, enhancedCraftingTable, craftingRecipe
+            machineGroup, machineStack, enhancedCraftingTable, craftingRecipe
         );
 
         machineClass.getMethod("setCapacity", int.class).invoke(machine, ENERGY_CAPACITY);
