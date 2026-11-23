@@ -75,8 +75,6 @@ public final class UniversalPowerCore {
             .getMethod("register", addonClass);
         register.invoke(core, addon);
 
-        plugin.getLogger().info("[G.O.A.T. Industries] Universal Power Core registered as an unplaceable item "
-            + "with its exact 3x3 recipe.");
     }
 
     private static ItemStack[] resolveRecipe(ClassLoader slimefunLoader) throws ReflectiveOperationException {
