@@ -344,18 +344,7 @@ public final class DynamicCrystalFormer {
                 Class<?> clickHandlerClass = Class.forName(MENU_CLICK_HANDLER_CLASS, true, loader);
 
                 ItemStack background = (ItemStack) chestMenuUtils.getMethod("getBackground").invoke(null);
-                ItemStack inputTexture = (ItemStack) chestMenuUtils.getMethod("getInputSlotTexture").invoke(null);
                 ItemStack outputTexture = (ItemStack) chestMenuUtils.getMethod("getOutputSlotTexture").invoke(null);
-                Object inputHandler = Proxy.newProxyInstance(
-                    clickHandlerClass.getClassLoader(),
-                    new Class<?>[] {clickHandlerClass},
-                    (proxy, method, arguments) -> {
-                        if (method.getName().equals("toString")) return "DynamicCrystalFormerInput";
-                        if (method.getName().equals("hashCode")) return System.identityHashCode(proxy);
-                        if (method.getName().equals("equals")) return proxy == arguments[0];
-                        return method.getName().equals("onClick");
-                    }
-                );
                 Object outputHandler = preset.getClass()
                     .getMethod("getMenuClickHandler", int.class)
                     .invoke(preset, DynamicCrystalCatalog.OUTPUT_SLOT);
@@ -374,11 +363,20 @@ public final class DynamicCrystalFormer {
                 Method addItem = preset.getClass().getMethod(
                     "addItem", int.class, ItemStack.class, clickHandlerClass
                 );
+                int[] inputSlots = DynamicCrystalCatalog.inputSlots();
                 for (int slot = 0; slot < 54; slot++) {
-                    addItem.invoke(preset, slot, background.clone(), denyHandler);
-                }
-                for (int slot : DynamicCrystalCatalog.inputSlots()) {
-                    addItem.invoke(preset, slot, inputTexture.clone(), inputHandler);
+                    boolean isInputSlot = false;
+                    for (int inputSlot : inputSlots) {
+                        if (slot == inputSlot) {
+                            isInputSlot = true;
+                            break;
+                        }
+                    }
+
+                    // Keep ingredient slots empty so players can insert items without picking up a glass placeholder.
+                    if (!isInputSlot) {
+                        addItem.invoke(preset, slot, background.clone(), denyHandler);
+                    }
                 }
                 addItem.invoke(preset, DynamicCrystalCatalog.OUTPUT_SLOT, outputTexture.clone(), outputHandler);
 
