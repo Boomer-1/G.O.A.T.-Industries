@@ -47,6 +47,9 @@ class DependencyCatalogTest {
     void catalogContainsNewInfinityExpansionTwoMachines() {
         assertHasItem("InfinityExpansion2", "IE_SINGULARITY_CONSTRUCTOR_2");
         assertHasItem("InfinityExpansion2", "IE_SINGULARITY_CONSTRUCTOR");
+        assertHasItem("InfinityExpansion2", "IE_INFINITY_SINGULARITY_REACTOR");
+        assertHasItem("InfinityExpansion2", "IE_INFINITY_CAPACITOR");
+        assertHasItem("InfinityExpansion2", "IE_INFINITY_WORKBENCH");
     }
 
     @Test
@@ -63,9 +66,6 @@ class DependencyCatalogTest {
 
     @Test
     void catalogContainsDynamicCrystalFormerIngredients() {
-        assertHasItem("InfinityExpansion2", "VOID_SMELTERY");
-        assertHasItem("InfinityExpansion2", "QUARRY_3");
-        assertHasItem("InfinityExpansion2", "VOID_CAPACITOR");
         assertHasItem("Supreme", "SUPREME_ELECTRIC_CORE_III");
         assertHasItem("Crystamae Historia", "CRY_EXALTED_BEACON");
         assertHasItem("Laboratory", "LAB_LASER_DRILL");
