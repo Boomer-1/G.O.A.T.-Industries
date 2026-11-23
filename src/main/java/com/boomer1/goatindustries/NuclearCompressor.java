@@ -57,7 +57,7 @@ public final class NuclearCompressor {
     private NuclearCompressor() {
     }
 
-    public static void register(JavaPlugin plugin, ClassLoader slimefunLoader, Object itemGroup, Object addon)
+    public static void register(JavaPlugin plugin, ClassLoader slimefunLoader, Object machineGroup, Object resourceGroup, Object addon)
         throws ReflectiveOperationException {
 
         Class<?> itemGroupClass = Class.forName(ITEM_GROUP_CLASS, true, slimefunLoader);
@@ -89,7 +89,7 @@ public final class NuclearCompressor {
             itemGroupClass, radioactivityClass, itemStackClass, recipeTypeClass, ItemStack[].class
         );
         Object nuclearUuMatter = radioactiveConstructor.newInstance(
-            itemGroup, veryDeadly, nuclearUuMatterStack, nullRecipe, new ItemStack[0]
+            resourceGroup, veryDeadly, nuclearUuMatterStack, nullRecipe, new ItemStack[0]
         );
         registerItem.invoke(nuclearUuMatter, addon);
 
@@ -117,7 +117,7 @@ public final class NuclearCompressor {
             itemGroupClass, itemStackClass, recipeTypeClass, ItemStack[].class
         );
         Object machine = machineConstructor.newInstance(
-            itemGroup, machineStack, enhancedCraftingTable, craftingRecipe
+            machineGroup, machineStack, enhancedCraftingTable, craftingRecipe
         );
 
         machineClass.getMethod("setCapacity", int.class).invoke(machine, ENERGY_CAPACITY);
