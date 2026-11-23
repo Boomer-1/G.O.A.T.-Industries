@@ -35,6 +35,31 @@ class DynamicCrystalCatalogTest {
     }
 
     @Test
+    void definesOmegaSupercrystalRecipeAndApprovedLore() {
+        assertEquals("Harvested power from the crystals of the world",
+            DynamicCrystalCatalog.DYNAMIC_CRYSTAL_LORE);
+        assertEquals("GOAT_OMEGA_SUPERCRYSTAL", DynamicCrystalCatalog.OMEGA_SUPERCRYSTAL_ID);
+        assertEquals("Omega Supercrystal", DynamicCrystalCatalog.OMEGA_SUPERCRYSTAL_NAME);
+        assertEquals("The Omega crystal is the ultimate power driver.",
+            DynamicCrystalCatalog.OMEGA_SUPERCRYSTAL_LORE);
+        assertEquals(
+            "https://textures.minecraft.net/texture/609d6a348a9923ebbb3423b196973d495b1aa5c056e4b351b120d36d8331a542",
+            DynamicCrystalCatalog.OMEGA_SUPERCRYSTAL_TEXTURE
+        );
+        assertEquals(
+            List.of(
+                "GOAT_DYNAMIC_COMMON_CRYSTAL",
+                "GOAT_DYNAMIC_UNIQUE_CRYSTAL",
+                "GOAT_DYNAMIC_UNCOMMON_CRYSTAL",
+                "GOAT_DYNAMIC_RARE_CRYSTAL",
+                "GOAT_DYNAMIC_EPIC_CRYSTAL",
+                "GOAT_DYNAMIC_MYTHICAL_CRYSTAL"
+            ),
+            DynamicCrystalCatalog.OMEGA_SUPERCRYSTAL_INPUT_IDS
+        );
+    }
+
+    @Test
     void usesTheApprovedMachineRecipeAndEnergySettings() {
         assertEquals(
             List.of(
