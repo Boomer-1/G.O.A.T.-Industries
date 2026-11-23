@@ -306,7 +306,18 @@ public final class DynamicCrystalFormer {
 
                     ItemStack currentOutput = (ItemStack) getItemInSlot.invoke(menu, DynamicCrystalCatalog.OUTPUT_SLOT);
                     ItemStack result = outputs[0];
-                    if (currentOutput != null
+                    boolean outputSlotHasPlaceholder = false;
+
+                    if (currentOutput != null) {
+                        Class<?> chestMenuUtils = Class.forName(
+                            "io.github.thebusybiscuit.slimefun4.utils.ChestMenuUtils", true, loader
+                        );
+                        ItemStack outputTexture = (ItemStack) chestMenuUtils
+                            .getMethod("getOutputSlotTexture").invoke(null);
+                        outputSlotHasPlaceholder = currentOutput.isSimilar(outputTexture);
+                    }
+
+                    if (currentOutput != null && !outputSlotHasPlaceholder
                         && (!sameSlimefunItem(currentOutput, result, getByItem, getId)
                             || currentOutput.getAmount() + result.getAmount() > result.getMaxStackSize())) {
                         continue;
