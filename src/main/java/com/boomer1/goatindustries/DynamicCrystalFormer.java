@@ -374,8 +374,16 @@ public final class DynamicCrystalFormer {
                 Class<?> advancedHandlerClass = Class.forName(ADVANCED_MENU_CLICK_HANDLER_CLASS, true, loader);
 
                 ItemStack background = (ItemStack) chestMenuUtils.getMethod("getBackground").invoke(null);
-                ItemStack inputTexture = (ItemStack) chestMenuUtils.getMethod("getInputSlotTexture").invoke(null);
-                ItemStack outputTexture = (ItemStack) chestMenuUtils.getMethod("getOutputSlotTexture").invoke(null);
+                ItemStack inputTexture = new ItemStack(Material.BLUE_STAINED_GLASS_PANE);
+                ItemMeta inputMeta = inputTexture.getItemMeta();
+                inputMeta.setDisplayName(ChatColor.DARK_BLUE + "Crystal Inputs");
+                inputTexture.setItemMeta(inputMeta);
+
+                ItemStack outputTexture = new ItemStack(Material.BROWN_STAINED_GLASS_PANE);
+                ItemMeta outputMeta = outputTexture.getItemMeta();
+                outputMeta.setDisplayName(ChatColor.GOLD + "Crystal Output");
+                outputTexture.setItemMeta(outputMeta);
+
                 Object emptyClickHandler = chestMenuUtils.getMethod("getEmptyClickHandler").invoke(null);
 
                 Object outputHandler = Proxy.newProxyInstance(
@@ -407,7 +415,7 @@ public final class DynamicCrystalFormer {
                 );
 
                 int[] inputSlots = DynamicCrystalCatalog.inputSlots();
-                int[] inputMarkers = {9, 13, 18, 27, 31};
+                int[] inputMarkers = {0, 1, 2, 3, 4, 9, 13, 18, 27, 31, 36, 37, 38, 39, 40};
                 int[] outputMarkers = {14, 15, 16, 17, 23, 26, 32, 33, 34, 35};
 
                 for (int slot = 0; slot < 54; slot++) {
@@ -418,7 +426,7 @@ public final class DynamicCrystalFormer {
 
                     // Keep every ingredient and product slot genuinely empty and usable.
                     if (!isInputSlot && !isInputMarker && !isOutputMarker && !isOpenOutput
-                        && slot != DynamicCrystalCatalog.PROGRESS_SLOT && slot != 4) {
+                        && slot != DynamicCrystalCatalog.PROGRESS_SLOT && slot != 5) {
                         addItem.invoke(preset, slot, background.clone(), emptyClickHandler);
                     }
                 }
@@ -444,7 +452,7 @@ public final class DynamicCrystalFormer {
                 ItemMeta arrowMeta = arrow.getItemMeta();
                 arrowMeta.setDisplayName(ChatColor.GOLD + "Output");
                 arrow.setItemMeta(arrowMeta);
-                addItem.invoke(preset, 4, arrow, emptyClickHandler);
+                addItem.invoke(preset, 5, arrow, emptyClickHandler);
             } catch (ReflectiveOperationException exception) {
                 throw new IllegalStateException("Could not create the Dynamic Crystal Former menu.", exception);
             }
