@@ -78,10 +78,6 @@ public final class SuperDaxi {
             .getMethod("register", addonClass);
         register.invoke(superDaxi, addon);
 
-        plugin.getLogger().info(
-            "[G.O.A.T. Industries] Super Daxi registered as a non-placeable item "
-                + "with its five-slot Enhanced Crafting Table recipe."
-        );
     }
 
     private static ItemStack[] resolveRecipe(ClassLoader slimefunLoader) throws ReflectiveOperationException {
