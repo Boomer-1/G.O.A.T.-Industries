@@ -31,7 +31,7 @@ jobs:
         env:
           BLOB_BUILD_API_TOKEN: ${{ secrets.BLOB_BUILD_API_TOKEN }}
         run: |
-          PROJECT_NAME="G.O.A.T. Industries"
+          PROJECT_NAME="GOAT-Industries"
           PROJECT_PATH=$(printf '%s' "$PROJECT_NAME" | jq -sRr @uri)
           PROJECTS=$(curl --fail --silent --show-error https://blob.build/api/projects)
 
@@ -45,7 +45,7 @@ jobs:
               -H "Content-Type: application/json" \
               -H "User-Agent: GOAT-Industries-GitHub-Actions" \
               -d '{
-                "name": "G.O.A.T. Industries",
+                "name": "GOAT-Industries",
                 "description": "The ultimate Slimefun addon",
                 "repoLink": "https://github.com/Boomer-1/G.O.A.T.-Industries",
                 "releaseChannels": [
@@ -69,8 +69,8 @@ jobs:
       - name: Publish to Blob Builds
         uses: WalshyDev/blob-builds/gh-action@main
         with:
-          project: G.O.A.T. Industries
+          project: GOAT-Industries
           releaseChannel: Dev
           apiToken: ${{ secrets.BLOB_BUILD_API_TOKEN }}
-          file: ./target/G.O.A.T. Industries.jar
+          file: ./target/GOAT-Industries.jar
           releaseNotes: ${{ github.event.head_commit.message || 'Manual build from GitHub Actions' }}
