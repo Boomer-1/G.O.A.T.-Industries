@@ -27,6 +27,36 @@ jobs:
       - name: Build and run tests
         run: mvn --batch-mode --no-transfer-progress clean verify
 
+      - name: Create Blob Builds project if needed
+        env:
+          BLOB_BUILD_API_TOKEN: ${{ secrets.BLOB_BUILD_API_TOKEN }}
+        run: |
+          PROJECT_NAME="G.O.A.T. Industries"
+          PROJECT_PATH=$(printf '%s' "$PROJECT_NAME" | jq -sRr @uri)
+          PROJECTS=$(curl --fail --silent --show-error https://blob.build/api/projects)
+
+          if printf '%s' "$PROJECTS" | jq -e --arg name "$PROJECT_NAME" '.data[]? | select(.name == $name)' >/dev/null; then
+            echo "Blob Builds project already exists."
+          else
+            echo "Creating Blob Builds project..."
+            curl --fail --silent --show-error \
+              -X POST "https://blob.build/api/projects/$PROJECT_PATH/new" \
+              -H "Authorization: Bearer $BLOB_BUILD_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "name": "G.O.A.T. Industries",
+                "description": "The ultimate Slimefun addon",
+                "repoLink": "https://github.com/Boomer-1/G.O.A.T.-Industries",
+                "releaseChannels": [
+                  {
+                    "name": "Dev",
+                    "supportedVersions": "1.21.1",
+                    "fileNaming": "$project.jar"
+                  }
+                ]
+              }'
+          fi
+
       - name: Publish to Blob Builds
         uses: WalshyDev/blob-builds/gh-action@main
         with:
