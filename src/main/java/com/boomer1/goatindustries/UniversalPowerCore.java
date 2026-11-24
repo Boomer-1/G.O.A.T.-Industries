@@ -1,9 +1,13 @@
 package com.boomer1.goatindustries;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.util.List;
 
+import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
+import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
+import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
+import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
+import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
+import io.github.thebusybiscuit.slimefun4.implementation.items.blocks.UnplaceableBlock;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -28,68 +32,37 @@ public final class UniversalPowerCore {
         "IE_INFINITY_CAPACITOR"
     );
 
-    private static final String ITEM_GROUP_CLASS =
-        "io.github.thebusybiscuit.slimefun4.api.items.ItemGroup";
-    private static final String ITEM_STACK_CLASS =
-        "io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack";
-    private static final String SLIMEFUN_ITEM_CLASS =
-        "io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem";
-    private static final String RECIPE_TYPE_CLASS =
-        "io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType";
-    private static final String UNPLACEABLE_BLOCK_CLASS =
-        "io.github.thebusybiscuit.slimefun4.implementation.items.blocks.UnplaceableBlock";
-    private static final String ADDON_CLASS =
-        "io.github.thebusybiscuit.slimefun4.api.SlimefunAddon";
-
     private UniversalPowerCore() {
     }
 
-    public static void register(JavaPlugin plugin, ClassLoader slimefunLoader, Object itemGroup, Object addon)
-        throws ReflectiveOperationException {
-
-        Class<?> itemGroupClass = Class.forName(ITEM_GROUP_CLASS, true, slimefunLoader);
-        Class<?> itemStackClass = Class.forName(ITEM_STACK_CLASS, true, slimefunLoader);
-        Class<?> recipeTypeClass = Class.forName(RECIPE_TYPE_CLASS, true, slimefunLoader);
-        Class<?> unplaceableBlockClass = Class.forName(UNPLACEABLE_BLOCK_CLASS, true, slimefunLoader);
-
-        Constructor<?> stackConstructor = itemStackClass.getConstructor(
-            String.class, Material.class, String.class, String[].class
-        );
-        ItemStack coreStack = (ItemStack) stackConstructor.newInstance(
+    public static void register(JavaPlugin plugin, ItemGroup itemGroup, SlimefunAddon addon) {
+        SlimefunItemStack coreStack = new SlimefunItemStack(
             ITEM_ID,
             Material.OCHRE_FROGLIGHT,
             ChatColor.GOLD + ITEM_NAME,
-            new String[] {ChatColor.GRAY + ITEM_LORE}
+            ChatColor.GRAY + ITEM_LORE
         );
 
-        ItemStack[] recipe = resolveRecipe(slimefunLoader);
-        Object enhancedCraftingTable = recipeTypeClass.getField("ENHANCED_CRAFTING_TABLE").get(null);
-
-        Constructor<?> coreConstructor = unplaceableBlockClass.getConstructor(
-            itemGroupClass, itemStackClass, recipeTypeClass, ItemStack[].class
-        );
-        Object core = coreConstructor.newInstance(itemGroup, coreStack, enhancedCraftingTable, recipe);
-
-        Class<?> addonClass = Class.forName(ADDON_CLASS, true, slimefunLoader);
-        Method register = Class.forName(SLIMEFUN_ITEM_CLASS, true, slimefunLoader)
-            .getMethod("register", addonClass);
-        register.invoke(core, addon);
-
+        ItemStack[] recipe = resolveRecipe();
+        new UnplaceableBlock(
+            itemGroup,
+            coreStack,
+            RecipeType.ENHANCED_CRAFTING_TABLE,
+            recipe
+        ).register(addon);
     }
 
-    private static ItemStack[] resolveRecipe(ClassLoader slimefunLoader) throws ReflectiveOperationException {
-        Class<?> slimefunItemClass = Class.forName(SLIMEFUN_ITEM_CLASS, true, slimefunLoader);
-        Method getById = slimefunItemClass.getMethod("getById", String.class);
-        Method getItem = slimefunItemClass.getMethod("getItem");
-
+    private static ItemStack[] resolveRecipe() {
         ItemStack[] ingredients = new ItemStack[RECIPE_IDS.size()];
         for (int slot = 0; slot < RECIPE_IDS.size(); slot++) {
             String id = RECIPE_IDS.get(slot);
-            Object item = getById.invoke(null, id);
+            SlimefunItem item = SlimefunItem.getById(id);
             if (item == null) {
-                throw new IllegalStateException("Required Universal Power Core ingredient is not registered: " + id);
+                throw new IllegalStateException(
+                    "Required Universal Power Core ingredient is not registered: " + id
+                );
             }
-            ingredients[slot] = ((ItemStack) getItem.invoke(item)).clone();
+            ingredients[slot] = item.getItem().clone();
         }
         return ingredients;
     }
