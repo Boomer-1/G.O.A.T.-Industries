@@ -1,20 +1,18 @@
 package com.boomer1.goatindustries;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 
+import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
+import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class DependencyVerifier {
-
-    private static final String SLIMEFUN_CLASS =
-        "io.github.thebusybiscuit.slimefun4.implementation.Slimefun";
 
     private DependencyVerifier() {
     }
@@ -29,8 +27,8 @@ public final class DependencyVerifier {
         Set<String> enabledItemIds = null;
         String registryFailure = null;
         try {
-            enabledItemIds = readEnabledSlimefunItemIds(slimefun);
-        } catch (ReflectiveOperationException | RuntimeException exception) {
+            enabledItemIds = readEnabledSlimefunItemIds();
+        } catch (RuntimeException exception) {
             registryFailure = exception.getClass().getSimpleName() + ": " + exception.getMessage();
             plugin.getLogger().log(Level.SEVERE,
                 "[G.O.A.T. Industries] Could not read Slimefun's enabled-item registry. "
@@ -112,40 +110,17 @@ public final class DependencyVerifier {
         return true;
     }
 
-    private static Set<String> readEnabledSlimefunItemIds(Plugin slimefun)
-        throws ReflectiveOperationException {
-
-        ClassLoader slimefunClassLoader = slimefun.getClass().getClassLoader();
-        Class<?> slimefunClass = Class.forName(SLIMEFUN_CLASS, true, slimefunClassLoader);
-
-        Method getRegistry = slimefunClass.getMethod("getRegistry");
-        Object registry = getRegistry.invoke(null);
-
-        Class<?> registryClass = Class.forName(
-            "io.github.thebusybiscuit.slimefun4.core.SlimefunRegistry", true, slimefunClassLoader);
-        Method getEnabledItems = registryClass.getMethod("getEnabledSlimefunItems");
-        Object enabledItems = getEnabledItems.invoke(registry);
-
-        if (!(enabledItems instanceof Iterable<?> iterable)) {
-            throw new IllegalStateException("Slimefun returned an unexpected enabled-item registry type.");
-        }
-
-        Class<?> slimefunItemClass = Class.forName(
-            "io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem", true, slimefunClassLoader);
-        Method getId = slimefunItemClass.getMethod("getId");
-
+    private static Set<String> readEnabledSlimefunItemIds() {
         Set<String> ids = new HashSet<>();
-        for (Object item : iterable) {
-            if (item == null) {
-                continue;
-            }
-
-            Object id = getId.invoke(item);
-            if (id instanceof String stringId && !stringId.isBlank()) {
-                ids.add(stringId);
+        for (SlimefunItem item : Slimefun.getRegistry().getEnabledSlimefunItems()) {
+            if (item != null) {
+                String id = item.getId();
+                if (id != null && !id.isBlank()) {
+                    ids.add(id);
+                }
             }
         }
-
         return ids;
     }
+
 }
