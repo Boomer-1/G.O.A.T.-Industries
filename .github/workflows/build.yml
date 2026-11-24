@@ -66,6 +66,48 @@ jobs:
             esac
           fi
 
+      - name: Update existing Blob Builds project and Dev channel metadata
+        env:
+          BLOB_BUILD_API_TOKEN: ${{ secrets.BLOB_BUILD_API_TOKEN }}
+        run: |
+          PROJECT_PATH=$(printf '%s' "GOAT-Industries" | jq -sRr @uri)
+
+          echo "Linking the existing Blob Builds project to GitHub..."
+          PROJECT_RESPONSE=$(curl --silent --show-error --write-out '\nHTTP_STATUS:%{http_code}' \
+            -X PATCH "https://blob.build/api/projects/$PROJECT_PATH" \
+            -H "Authorization: Bearer $BLOB_BUILD_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            -H "User-Agent: GOAT-Industries-GitHub-Actions" \
+            -d '{
+              "name": "GOAT-Industries",
+              "description": "The ultimate Slimefun addon",
+              "repoLink": "https://github.com/Boomer-1/G.O.A.T.-Industries"
+            }')
+          PROJECT_STATUS=$(printf '%s' "$PROJECT_RESPONSE" | sed -n 's/^HTTP_STATUS://p')
+          PROJECT_BODY=$(printf '%s' "$PROJECT_RESPONSE" | sed '$d')
+          echo "Blob Builds project update response (HTTP $PROJECT_STATUS):"
+          printf '%s\\n' "$PROJECT_BODY"
+          case "$PROJECT_STATUS" in
+            2??) ;;
+            *) echo "Blob Builds project update failed."; exit 1 ;;
+          esac
+
+          echo "Setting the Dev channel supported versions to 1.21.x..."
+          CHANNEL_RESPONSE=$(curl --silent --show-error --write-out '\nHTTP_STATUS:%{http_code}' \
+            -X PATCH "https://blob.build/api/projects/$PROJECT_PATH/Dev" \
+            -H "Authorization: Bearer $BLOB_BUILD_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            -H "User-Agent: GOAT-Industries-GitHub-Actions" \
+            -d '{"supportedVersions":"1.21.x"}')
+          CHANNEL_STATUS=$(printf '%s' "$CHANNEL_RESPONSE" | sed -n 's/^HTTP_STATUS://p')
+          CHANNEL_BODY=$(printf '%s' "$CHANNEL_RESPONSE" | sed '$d')
+          echo "Blob Builds Dev channel update response (HTTP $CHANNEL_STATUS):"
+          printf '%s\\n' "$CHANNEL_BODY"
+          case "$CHANNEL_STATUS" in
+            2??) ;;
+            *) echo "Blob Builds Dev channel update failed."; exit 1 ;;
+          esac
+
       - name: Publish to Blob Builds
         env:
           BLOB_BUILD_API_TOKEN: ${{ secrets.BLOB_BUILD_API_TOKEN }}
