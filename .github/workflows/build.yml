@@ -47,10 +47,11 @@ jobs:
               -d '{
                 "name": "GOAT-Industries",
                 "description": "The ultimate Slimefun addon",
+                "repoLink": "https://github.com/Boomer-1/G.O.A.T.-Industries",
                 "releaseChannels": [
                   {
                     "name": "Dev",
-                    "supportedVersions": "1.21.1",
+                    "supportedVersions": "1.21.x",
                     "fileNaming": "$project.jar"
                   }
                 ]
@@ -66,10 +67,29 @@ jobs:
           fi
 
       - name: Publish to Blob Builds
-        uses: WalshyDev/blob-builds/gh-action@main
-        with:
-          project: GOAT-Industries
-          releaseChannel: Dev
-          apiToken: ${{ secrets.BLOB_BUILD_API_TOKEN }}
-          file: ./target/G.O.A.T. Industries.jar
-          releaseNotes: ${{ github.event.head_commit.message || 'Manual build from GitHub Actions' }}
+        env:
+          BLOB_BUILD_API_TOKEN: ${{ secrets.BLOB_BUILD_API_TOKEN }}
+        run: |
+          JAR="./target/G.O.A.T. Industries.jar"
+          CHECKSUM=$(sha256sum "$JAR" | awk '{print $1}')
+          METADATA=$(jq -n \
+            --arg checksum "$CHECKSUM" \
+            --arg supportedVersions "1.21.x" \
+            --arg releaseNotes "${{ github.event.head_commit.message || 'Manual build from GitHub Actions' }}" \
+            --arg commitHash "${{ github.sha }}" \
+            '{checksum: $checksum, supportedVersions: $supportedVersions, releaseNotes: $releaseNotes, commitHash: $commitHash}')
+
+          RESPONSE=$(curl --silent --show-error --write-out '\nHTTP_STATUS:%{http_code}' \
+            -X POST "https://blob.build/api/projects/GOAT-Industries/Dev/upload" \
+            -H "Authorization: Bearer $BLOB_BUILD_API_TOKEN" \
+            -H "User-Agent: GOAT-Industries-GitHub-Actions" \
+            --form "file=@$JAR" \
+            --form-string "metadata=$METADATA")
+          HTTP_STATUS=$(printf '%s' "$RESPONSE" | sed -n 's/^HTTP_STATUS://p')
+          RESPONSE_BODY=$(printf '%s' "$RESPONSE" | sed '$d')
+          echo "Blob Builds upload response (HTTP $HTTP_STATUS):"
+          printf '%s\n' "$RESPONSE_BODY"
+          case "$HTTP_STATUS" in
+            2??) ;;
+            *) echo "Blob Builds upload failed."; exit 1 ;;
+          esac
