@@ -47,7 +47,7 @@ jobs:
               -d '{
                 "name": "GOAT-Industries",
                 "description": "The ultimate Slimefun addon",
-                "repoLink": "https://github.com/Boomer-1/G.O.A.T.-Industries.git",
+                "repoLink": "https://github.com/Boomer-1/GOAT-Industries",
                 "releaseChannels": [
                   {
                     "name": "Dev",
@@ -81,7 +81,7 @@ jobs:
             -d '{
               "name": "GOAT-Industries",
               "description": "The ultimate Slimefun addon",
-              "repoLink": "https://github.com/Boomer-1/G.O.A.T.-Industries.git"
+              "repoLink": "https://github.com/Boomer-1/GOAT-Industries"
             }')
           PROJECT_STATUS=$(printf '%s' "$PROJECT_RESPONSE" | sed -n 's/^HTTP_STATUS://p')
           PROJECT_BODY=$(printf '%s' "$PROJECT_RESPONSE" | sed '$d')
