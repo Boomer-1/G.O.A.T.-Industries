@@ -39,10 +39,11 @@ jobs:
             echo "Blob Builds project already exists."
           else
             echo "Creating Blob Builds project..."
-            curl --fail --silent --show-error \
+            RESPONSE=$(curl --silent --show-error --write-out '\nHTTP_STATUS:%{http_code}' \
               -X POST "https://blob.build/api/projects/$PROJECT_PATH/new" \
               -H "Authorization: Bearer $BLOB_BUILD_API_TOKEN" \
               -H "Content-Type: application/json" \
+              -H "User-Agent: GOAT-Industries-GitHub-Actions" \
               -d '{
                 "name": "G.O.A.T. Industries",
                 "description": "The ultimate Slimefun addon",
@@ -54,7 +55,15 @@ jobs:
                     "fileNaming": "$project.jar"
                   }
                 ]
-              }'
+              }')
+            HTTP_STATUS=$(printf '%s' "$RESPONSE" | sed -n 's/^HTTP_STATUS://p')
+            RESPONSE_BODY=$(printf '%s' "$RESPONSE" | sed '$d')
+            echo "Blob Builds project-creation response (HTTP $HTTP_STATUS):"
+            printf '%s\n' "$RESPONSE_BODY"
+            case "$HTTP_STATUS" in
+              2??) ;;
+              *) echo "Blob Builds project creation failed."; exit 1 ;;
+            esac
           fi
 
       - name: Publish to Blob Builds
