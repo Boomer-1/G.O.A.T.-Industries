@@ -9,13 +9,21 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
+import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
+import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
+import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
+import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
+import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
+import io.github.thebusybiscuit.slimefun4.implementation.items.blocks.UnplaceableBlock;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.profile.PlayerProfile;
+import org.bukkit.profile.PlayerTextures;
 
 public final class SuperSupremeCore {
 
@@ -36,18 +44,6 @@ public final class SuperSupremeCore {
         "SUPREME_CORE_OF_ALLOY"
     };
 
-    private static final String ITEM_GROUP_CLASS =
-        "io.github.thebusybiscuit.slimefun4.api.items.ItemGroup";
-    private static final String ITEM_STACK_CLASS =
-        "io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack";
-    private static final String SLIMEFUN_ITEM_CLASS =
-        "io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem";
-    private static final String RECIPE_TYPE_CLASS =
-        "io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType";
-    private static final String UNPLACEABLE_BLOCK_CLASS =
-        "io.github.thebusybiscuit.slimefun4.implementation.items.blocks.UnplaceableBlock";
-    private static final String ADDON_CLASS =
-        "io.github.thebusybiscuit.slimefun4.api.SlimefunAddon";
     private static final String MULTIBLOCK_MAGICAL_FABRICATOR_CLASS =
         "com.github.relativobr.supreme.machine.multiblock.MultiBlockMagicalFabricator";
     private static final String ABSTRACT_ITEM_RECIPE_CLASS =
@@ -62,28 +58,16 @@ public final class SuperSupremeCore {
     private SuperSupremeCore() {
     }
 
-    public static void register(JavaPlugin plugin, ClassLoader slimefunLoader, Object itemGroup, Object addon)
+    public static void register(JavaPlugin plugin, ItemGroup itemGroup, SlimefunAddon addon)
         throws ReflectiveOperationException {
 
-        Class<?> itemGroupClass = Class.forName(ITEM_GROUP_CLASS, true, slimefunLoader);
-        Class<?> itemStackClass = Class.forName(ITEM_STACK_CLASS, true, slimefunLoader);
-        Class<?> recipeTypeClass = Class.forName(RECIPE_TYPE_CLASS, true, slimefunLoader);
-        Class<?> slimefunItemClass = Class.forName(SLIMEFUN_ITEM_CLASS, true, slimefunLoader);
-        Class<?> unplaceableBlockClass = Class.forName(UNPLACEABLE_BLOCK_CLASS, true, slimefunLoader);
-        Class<?> addonClass = Class.forName(ADDON_CLASS, true, slimefunLoader);
-
-        Constructor<?> stackConstructor = itemStackClass.getConstructor(
-            String.class, Material.class, String.class, String[].class
-        );
-        ItemStack outputStack = (ItemStack) stackConstructor.newInstance(
+        SlimefunItemStack outputStack = new SlimefunItemStack(
             ITEM_ID,
             Material.PLAYER_HEAD,
             ChatColor.GOLD + ITEM_NAME,
-            new String[] {
-                "How is it possible to put so much in so small a space?"
-            }
+            "How is it possible to put so much in so small a space?"
         );
-        setHeadTexture(outputStack, slimefunLoader);
+        setHeadTexture(outputStack);
 
         Plugin supreme = plugin.getServer().getPluginManager().getPlugin("Supreme");
         if (supreme == null || !supreme.isEnabled()) {
@@ -91,42 +75,27 @@ public final class SuperSupremeCore {
         }
         ClassLoader supremeLoader = supreme.getClass().getClassLoader();
 
-        ItemStack[] recipe = resolveRecipe(slimefunLoader);
-        Object multiblockRecipeType = getMultiblockMagicalRecipeType(supremeLoader);
+        ItemStack[] recipe = resolveRecipe();
+        RecipeType multiblockRecipeType = getMultiblockMagicalRecipeType(supremeLoader);
 
-        Constructor<?> outputConstructor = unplaceableBlockClass.getConstructor(
-            itemGroupClass, itemStackClass, recipeTypeClass, ItemStack[].class
-        );
-        Object outputItem = outputConstructor.newInstance(
-            itemGroup, outputStack, multiblockRecipeType, recipe
-        );
+        new UnplaceableBlock(itemGroup, outputStack, multiblockRecipeType, recipe).register(addon);
 
-        Method registerItem = slimefunItemClass.getMethod("register", addonClass);
-        registerItem.invoke(outputItem, addon);
-
-        registerElectricMagicalRecipes(
-            slimefunLoader, supremeLoader, slimefunItemClass, outputStack, recipe
-        );
-
+        registerElectricMagicalRecipes(supremeLoader, outputStack, recipe);
     }
 
-    private static Object getMultiblockMagicalRecipeType(ClassLoader supremeLoader)
+    private static RecipeType getMultiblockMagicalRecipeType(ClassLoader supremeLoader)
         throws ReflectiveOperationException {
         Class<?> machineClass = Class.forName(
             MULTIBLOCK_MAGICAL_FABRICATOR_CLASS, true, supremeLoader
         );
-        return machineClass.getMethod("getMachine").invoke(null);
+        return (RecipeType) machineClass.getMethod("getMachine").invoke(null);
     }
 
     private static void registerElectricMagicalRecipes(
-        ClassLoader slimefunLoader,
         ClassLoader supremeLoader,
-        Class<?> slimefunItemClass,
         ItemStack outputStack,
         ItemStack[] recipe
     ) throws ReflectiveOperationException {
-
-        Method getById = slimefunItemClass.getMethod("getById", String.class);
         Class<?> abstractRecipeClass = Class.forName(
             ABSTRACT_ITEM_RECIPE_CLASS, true, supremeLoader
         );
@@ -136,7 +105,7 @@ public final class SuperSupremeCore {
         ItemStack[] output = {outputStack.clone()};
 
         for (String machineId : ELECTRIC_MAGICAL_MACHINE_IDS) {
-            Object machine = getById.invoke(null, machineId);
+            SlimefunItem machine = SlimefunItem.getById(machineId);
             if (machine == null) {
                 throw new IllegalStateException(
                     "Required Supreme Electric Magical Machine is not registered: " + machineId
@@ -158,76 +127,40 @@ public final class SuperSupremeCore {
         }
     }
 
-    private static ItemStack[] resolveRecipe(ClassLoader slimefunLoader)
-        throws ReflectiveOperationException {
-        Class<?> slimefunItemClass = Class.forName(SLIMEFUN_ITEM_CLASS, true, slimefunLoader);
-        Method getById = slimefunItemClass.getMethod("getById", String.class);
-        Method getItem = slimefunItemClass.getMethod("getItem");
-
+    private static ItemStack[] resolveRecipe() {
         ItemStack[] ingredients = new ItemStack[RECIPE_IDS.length];
         for (int slot = 0; slot < RECIPE_IDS.length; slot++) {
             String id = RECIPE_IDS[slot];
-            Object item = getById.invoke(null, id);
+            SlimefunItem item = SlimefunItem.getById(id);
             if (item == null) {
                 throw new IllegalStateException(
                     "Required Super Supreme Core ingredient is not registered: " + id
                 );
             }
 
-            ingredients[slot] = ((ItemStack) getItem.invoke(item)).clone();
+            ingredients[slot] = item.getItem().clone();
             ingredients[slot].setAmount(64);
         }
         return ingredients;
     }
 
-    private static void setHeadTexture(ItemStack stack, ClassLoader slimefunLoader)
-        throws ReflectiveOperationException {
-        ItemMeta meta = stack.getItemMeta();
-        Class<?> skullMetaClass = Class.forName(
-            "org.bukkit.inventory.meta.SkullMeta", true, slimefunLoader
-        );
-        if (!skullMetaClass.isInstance(meta)) {
+    private static void setHeadTexture(ItemStack stack) {
+        if (!(stack.getItemMeta() instanceof SkullMeta skullMeta)) {
             throw new IllegalStateException("The Super Supreme Core item is not a player head.");
         }
 
-        Class<?> profileClass = Class.forName(
-            "org.bukkit.profile.PlayerProfile", true, slimefunLoader
-        );
-        Class<?> texturesClass = Class.forName(
-            "org.bukkit.profile.PlayerTextures", true, slimefunLoader
-        );
         UUID profileId = UUID.nameUUIDFromBytes(
             (ITEM_ID + ":" + ITEM_NAME).getBytes(StandardCharsets.UTF_8)
         );
-
-        Object profile;
+        PlayerProfile profile = Bukkit.createPlayerProfile(profileId, "GoatSuperCore");
+        PlayerTextures textures = profile.getTextures();
         try {
-            profile = Bukkit.class.getMethod(
-                "createPlayerProfile", UUID.class, String.class
-            ).invoke(null, profileId, "GoatSuperCore");
-        } catch (NoSuchMethodException exception) {
-            profile = Bukkit.class.getMethod(
-                "createPlayerProfile", UUID.class
-            ).invoke(null, profileId);
-        }
-
-        Object textures = profileClass.getMethod("getTextures").invoke(profile);
-        URL skinUrl;
-        try {
-            skinUrl = new URL(TEXTURE_URL);
+            textures.setSkin(new URL(TEXTURE_URL));
         } catch (MalformedURLException exception) {
             throw new IllegalStateException("The Super Supreme Core texture URL is invalid.", exception);
         }
-        texturesClass.getMethod("setSkin", URL.class).invoke(textures, skinUrl);
-        profileClass.getMethod("setTextures", texturesClass).invoke(profile, textures);
-
-        Method applyProfile;
-        try {
-            applyProfile = skullMetaClass.getMethod("setOwnerProfile", profileClass);
-        } catch (NoSuchMethodException exception) {
-            applyProfile = skullMetaClass.getMethod("setPlayerProfile", profileClass);
-        }
-        applyProfile.invoke(meta, profile);
-        stack.setItemMeta(meta);
+        profile.setTextures(textures);
+        skullMeta.setOwnerProfile(profile);
+        stack.setItemMeta(skullMeta);
     }
 }
