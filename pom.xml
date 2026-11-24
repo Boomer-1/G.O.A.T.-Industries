@@ -23,6 +23,10 @@
             <id>papermc</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -30,6 +34,13 @@
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
             <version>${paper.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.SlimefunGuguProject</groupId>
+            <artifactId>Slimefun4</artifactId>
+            <version>b39097e01594ccdba18ff13b2557553f7a666141</version>
             <scope>provided</scope>
         </dependency>
 
@@ -46,24 +57,6 @@
         </dependency>
     </dependencies>
 
-    <profiles>
-        <profile>
-            <id>local-slimefun-2026.7</id>
-            <activation>
-                <property>
-                    <name>slimefun.local</name>
-                </property>
-            </activation>
-            <dependencies>
-                <dependency>
-                    <groupId>com.github.slimefun</groupId>
-                    <artifactId>Slimefun</artifactId>
-                    <version>2026.7</version>
-                    <scope>provided</scope>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
 
     <build>
         <finalName>G.O.A.T. Industries</finalName>
