@@ -6,7 +6,7 @@
 
     <groupId>com.boomer1</groupId>
     <artifactId>goat-industries</artifactId>
-    <version>0.1.0-TEST</version>
+    <version>0.1.0</version>
     <name>G.O.A.T. Industries</name>
     <description>The ultimate Slimefun addon</description>
     <packaging>jar</packaging>
@@ -66,7 +66,7 @@
     </profiles>
 
     <build>
-        <finalName>G.O.A.T.-Industries-${project.version}</finalName>
+        <finalName>G.O.A.T. Industries</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
