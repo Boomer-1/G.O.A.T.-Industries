@@ -2,7 +2,9 @@ package com.boomer1.goatindustries;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -30,7 +32,7 @@ public final class EmcDiamondRewardManager implements Listener {
 
     private final JavaPlugin plugin;
     private final ItemStack emcDiamond;
-    private final Method getEmcMethod;
+    private final MethodHandle getEmcHandle;
     private final File achievedFile;
     private final YamlConfiguration achievedData;
     private final Set<UUID> rewardedThisSession = new HashSet<>();
@@ -55,7 +57,11 @@ public final class EmcDiamondRewardManager implements Listener {
         migrateLegacyAchievements();
 
         Class<?> emcStorageClass = Class.forName(EMC_STORAGE_CLASS, true, emcTech.getClass().getClassLoader());
-        this.getEmcMethod = emcStorageClass.getMethod("getEmc", UUID.class);
+        this.getEmcHandle = MethodHandles.publicLookup().findStatic(
+            emcStorageClass,
+            "getEmc",
+            MethodType.methodType(double.class, UUID.class)
+        );
     }
 
     private void migrateLegacyAchievements() throws IOException {
@@ -111,12 +117,11 @@ public final class EmcDiamondRewardManager implements Listener {
 
         final double currentEmc;
         try {
-            Object value = getEmcMethod.invoke(null, playerId);
-            if (!(value instanceof Number number)) {
-                throw new IllegalStateException("EMCTech returned a non-numeric EMC balance.");
+            currentEmc = (double) getEmcHandle.invokeExact(playerId);
+        } catch (Throwable exception) {
+            if (exception instanceof Error error) {
+                throw error;
             }
-            currentEmc = number.doubleValue();
-        } catch (ReflectiveOperationException | RuntimeException exception) {
             if (!apiFailureLogged) {
                 apiFailureLogged = true;
                 plugin.getLogger().log(Level.SEVERE,
