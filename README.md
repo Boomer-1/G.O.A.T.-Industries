@@ -4,7 +4,7 @@ Welcome to the ultimate in end-game Slimefun Addons, G.O.A.T. Industries. This a
 
 Your goal is to craft the G.O.A.T. Trophy. Seems easy enough, doesn't it? LOL. Good luck.
 
-There are 13 other addons that must be installed on the server. Put the JAR file in the plugins folder and start your server. G.O.A.T. Industries will check for those addons that must be enabled. If a missing plugin is detected, this addon will not load. You will get a console message with what must be enabled. I would suggest to the server owner not to disable ANY items within these 13 addons.
+There are 14 other addons that must be installed on the server. Put the JAR file in the plugins folder and start your server. G.O.A.T. Industries will check for those addons that must be enabled. If a missing plugin is detected, this addon will not load. You will get a console message with what must be enabled. I would suggest to the server owner not to disable ANY items within these 14 addons.
 
 1. InfinityExpansion2
 2. TranscEndence
@@ -19,5 +19,6 @@ There are 13 other addons that must be installed on the server. Put the JAR file
 11. NetworksExpansion
 12. Crystamae Historia
 13. EMCTech
+14. Laboratory
 
 This addon was built against Paper 1.21.x using the Slimefun Gugu Project source files, recompiled from each respective GitHub repository. While I have not tested this addon outside of that scenario, if the item IDs have not changed on your server from the original English versions, in theory it should work. However, at this time I am not providing support outside of Paper 1.21.x.
