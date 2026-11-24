@@ -12,6 +12,7 @@ import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
 import io.github.thebusybiscuit.slimefun4.api.items.groups.NestedItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.groups.SubItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
+import io.github.thebusybiscuit.slimefun4.api.researches.Research;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -122,9 +123,97 @@ public final class SlimefunContentRegistrar {
             trophyRecipe
         ).register(addon);
 
+        registerResearches(plugin);
+
         plugin.getServer().getPluginManager().registerEvents(new DynamicCrystalPlacementListener(plugin), plugin);
         plugin.getServer().getPluginManager().registerEvents(new GoatTrophyListener(plugin), plugin);
         new EmcDiamondRewardManager(plugin, emcTech, emcDiamondStack).start();
+    }
+
+    private static void registerResearches(JavaPlugin plugin) {
+        registerResearch(
+            plugin, 2_026_110_001, "goat_trophy", "G.O.A.T. Trophy", 200,
+            "GOAT_TROPHY"
+        );
+        registerResearch(
+            plugin, 2_026_110_002, "nuclear_compressor", "Nuclear Compressor", 50,
+            NuclearCompressor.MACHINE_ID
+        );
+        registerResearch(
+            plugin, 2_026_110_003, "implosive_press", "Implosive Press", 50,
+            ImplosivePress.MACHINE_ID
+        );
+        registerResearch(
+            plugin, 2_026_110_004, "dynamic_crystal_former", "Dynamic Crystal Former", 50,
+            DynamicCrystalCatalog.MACHINE_ID
+        );
+        registerResearch(
+            plugin, 2_026_110_005, "emc_diamond", "EMC Diamond", 50,
+            "EMC_DIAMOND"
+        );
+        registerResearch(
+            plugin, 2_026_110_006, "universal_power_core", "Universal Power Core", 40,
+            UniversalPowerCore.ITEM_ID
+        );
+        registerResearch(
+            plugin, 2_026_110_007, "galactic_spaceball", "Galactic Spaceball", 40,
+            GalacticSpaceball.ITEM_ID
+        );
+
+        String[] dynamicCrystalIds = new String[DynamicCrystalCatalog.OUTPUTS.size() + 1];
+        for (int i = 0; i < DynamicCrystalCatalog.OUTPUTS.size(); i++) {
+            dynamicCrystalIds[i] = DynamicCrystalCatalog.OUTPUTS.get(i).id();
+        }
+        dynamicCrystalIds[dynamicCrystalIds.length - 1] = DynamicCrystalCatalog.OMEGA_SUPERCRYSTAL_ID;
+        registerResearch(
+            plugin, 2_026_110_008, "dynamic_crystals", "Dynamic Crystals and Omega Supercrystal", 30,
+            dynamicCrystalIds
+        );
+
+        registerResearch(
+            plugin, 2_026_110_009, "nuclear_uu_matter", "Nuclear UU Matter", 75,
+            NuclearCompressor.OUTPUT_ID
+        );
+        registerResearch(
+            plugin, 2_026_110_010, "implosive_cobblestone", "Implosive Cobblestone", 40,
+            ImplosivePress.OUTPUT_ID
+        );
+        registerResearch(
+            plugin, 2_026_110_011, "super_supreme_core", "Super Supreme Core", 50,
+            SuperSupremeCore.ITEM_ID
+        );
+        registerResearch(
+            plugin, 2_026_110_012, "supreme_daxi", "Supreme Daxi", 75,
+            SuperDaxi.ITEM_ID
+        );
+    }
+
+    private static void registerResearch(
+        JavaPlugin plugin,
+        int researchId,
+        String key,
+        String name,
+        int xpLevels,
+        String... itemIds
+    ) {
+        Research research = new Research(
+            new NamespacedKey(plugin, key),
+            researchId,
+            name,
+            xpLevels
+        );
+
+        for (String itemId : itemIds) {
+            SlimefunItem item = SlimefunItem.getById(itemId);
+            if (item == null) {
+                throw new IllegalStateException(
+                    "Cannot register research '" + name + "' because item is not registered: " + itemId
+                );
+            }
+            research.addItems(item);
+        }
+
+        research.register();
     }
 
     private static void suppressRuntimeRegistrationLog(Logger logger) {
