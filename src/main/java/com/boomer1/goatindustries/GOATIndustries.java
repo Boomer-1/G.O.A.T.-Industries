@@ -3,10 +3,21 @@ package com.boomer1.goatindustries;
 import java.io.IOException;
 import java.util.logging.Level;
 
+import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class GOATIndustries extends JavaPlugin {
+public final class GOATIndustries extends JavaPlugin implements SlimefunAddon {
+
+    @Override
+    public JavaPlugin getJavaPlugin() {
+        return this;
+    }
+
+    @Override
+    public String getBugTrackerURL() {
+        return null;
+    }
 
     @Override
     public void onEnable() {
@@ -36,7 +47,7 @@ public final class GOATIndustries extends JavaPlugin {
                     throw new IllegalStateException("EMCTech is not available.");
                 }
 
-                SlimefunContentRegistrar.register(this, slimefun, emcTech);
+                SlimefunContentRegistrar.register(this, emcTech);
                 getLogger().info("[G.O.A.T. Industries] Content and EMC Diamond reward monitoring loaded successfully.");
             } catch (ReflectiveOperationException | IOException | RuntimeException exception) {
                 getLogger().log(Level.SEVERE,
